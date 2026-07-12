@@ -1,4 +1,4 @@
-# LearnHub — Proyecto Integrador (LMS)
+# Lumora — Proyecto Integrador (LMS)
 
 Plataforma de cursos con dos roles: **student** y **tutor**.
 
@@ -48,6 +48,7 @@ Usuarios de prueba (ya insertados por `database/init.sql`), contraseña `passwor
 
 - Student → `jordan.kim@example.com`
 - Tutor → `alex.rivera@example.com`
+- Tutor → `elena.vasquez@example.com`
 
 Al iniciar sesión, el backend valida las credenciales y devuelve un JWT + el
 usuario; el frontend guarda la sesión y redirige a `/student` o `/tutor` según el rol
