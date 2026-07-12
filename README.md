@@ -1,14 +1,14 @@
-# Lumora— Proyecto Integrador (Categoria: Educación)
+# LearnHub — Proyecto Integrador (LMS)
 
-Maqueta inicial de la plataforma de cursos con dos roles: **student** y **tutor**.
+Plataforma de cursos con dos roles: **student** y **tutor**.
 
-- **Frontend**: SPA en Vanilla JS + Vite, router propio con **History API** y Tailwind CSS v4.
+- **Frontend**: SPA en Vanilla JS + Vite, router propio con **History API** y Tailwind CSS v4 (build real, no CDN).
 - **Backend**: Node + Express.
 - **Base de datos**: PostgreSQL en Docker, conectable desde DBeaver.
 
 > Estado actual: estructura completa con archivos nombrados (vacíos) para que el
-> equipo los vaya implementando. **Solo el inicio de sesión está implementado desde el Frontend**
-> (frontend replicado del diseño figma + la ruta tentativa `POST /api/auth/login` en el backend).
+> equipo los vaya implementando. **Solo el inicio de sesión está implementado**
+> (frontend fiel al diseño + la ruta `POST /api/auth/login` en el backend).
 
 ## 1. Base de datos
 

@@ -50,7 +50,7 @@ export function navbar({ active = "home" } = {}) {
         <!-- Logo -->
         <div class="flex items-center gap-2.5 shrink-0">
           <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white" style="background: var(--primary)">${icon.cap}</div>
-          <span class="text-lg font-bold" style="font-family: var(--font-family-display)">Lumora</span>
+          <span class="text-lg font-bold" style="font-family: var(--font-family-display)">Name</span>
         </div>
 
         <!-- Tabs centrales -->

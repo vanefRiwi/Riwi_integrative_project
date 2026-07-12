@@ -4,6 +4,7 @@ import { registerView, initRegister } from "../views/auth/register.js";
 import { studentHomeView, initStudentHome } from "../views/student/studentHome.js";
 import { tutorHomeView, initTutorHome } from "../views/tutor/tutorHome.js";
 import { dashboardView, initDashboard } from "../views/tutor/dashboardView.js";
+import { courseEditorView, initCourseEditor } from "../views/tutor/courseEditorView.js";
 import { profileView, initProfile } from "../views/shared/profileView.js";
 
 export const routes = {
@@ -14,6 +15,7 @@ export const routes = {
 
   "/tutor":            { view: tutorHomeView,   init: initTutorHome,   roles: ["tutor"] },
   "/tutor/dashboard":  { view: dashboardView,   init: initDashboard,   roles: ["tutor"] },
+  "/tutor/editor":     { view: courseEditorView, init: initCourseEditor, roles: ["tutor"] },
 
   // Profile es compartido por ambos roles
   "/profile":          { view: profileView,     init: initProfile,     roles: ["student", "tutor"] },

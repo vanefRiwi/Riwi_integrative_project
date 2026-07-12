@@ -34,8 +34,10 @@ export async function renderRoute() {
     return navigate("/login");
   }
 
+  // Pinta la vista inicial y luego ejecuta su init
+  // (las vistas que cargan datos vuelven a renderizarse dentro de su init)
   app().innerHTML = route.view();
-  if (route.init) route.init();
+  if (route.init) await route.init();
 }
 
 export function initRouter() {
