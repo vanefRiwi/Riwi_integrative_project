@@ -5,6 +5,7 @@
 import { navbar, initNavbar } from "../../components/navbar.js";
 import { courseCard } from "../../components/courseCard.js";
 import { getSession } from "../../helpers/auth.js";
+import { navigate } from "../../router/router.js";
 import {
   getCourses,
   getEnrolledIds,
@@ -141,6 +142,14 @@ function refreshGrid(root) {
 
 // Engancha los botones Join / Leave de cada tarjeta
 function bindCardActions(root) {
+  // Clic en la tarjeta -> abrir el curso (solo si ya está inscrito)
+  root.querySelectorAll("[data-course]").forEach((card) =>
+    card.addEventListener("click", () => {
+      const id = Number(card.dataset.course);
+      if (enrolledIds.includes(id)) navigate(`/student/course?id=${id}`);
+    })
+  );
+
   root.querySelectorAll("[data-join]").forEach((btn) =>
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();

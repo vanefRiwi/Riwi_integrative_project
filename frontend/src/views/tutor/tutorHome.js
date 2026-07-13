@@ -122,10 +122,11 @@ function bindCardActions(root) {
       navigate(`/tutor/editor?id=${btn.dataset.edit}`);
     })
   );
+  // "Preview": ver el curso tal como lo vería un estudiante
   root.querySelectorAll("[data-preview]").forEach((btn) =>
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      // TODO: abrir la vista previa del curso como student
+      navigate(`/student/course?id=${btn.dataset.preview}&preview=1`);
     })
   );
 }

@@ -2,6 +2,7 @@
 import { loginView, initLogin } from "../views/auth/login.js";
 import { registerView, initRegister } from "../views/auth/register.js";
 import { studentHomeView, initStudentHome } from "../views/student/studentHome.js";
+import { courseView, initCourseView } from "../views/student/courseView.js";
 import { tutorHomeView, initTutorHome } from "../views/tutor/tutorHome.js";
 import { dashboardView, initDashboard } from "../views/tutor/dashboardView.js";
 import { courseEditorView, initCourseEditor } from "../views/tutor/courseEditorView.js";
@@ -12,6 +13,8 @@ export const routes = {
   "/register":         { view: registerView,    init: initRegister,    roles: [] },
 
   "/student":          { view: studentHomeView, init: initStudentHome, roles: ["student"] },
+  // La vista de curso sirve a AMBOS roles: el tutor la usa como "Preview as student"
+  "/student/course":   { view: courseView,      init: initCourseView,  roles: ["student", "tutor"] },
 
   "/tutor":            { view: tutorHomeView,   init: initTutorHome,   roles: ["tutor"] },
   "/tutor/dashboard":  { view: dashboardView,   init: initDashboard,   roles: ["tutor"] },

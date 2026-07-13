@@ -1,5 +1,5 @@
 -- =====================================================================
--- LearnHub - Schema inicial
+-- LumORA - Schema inicial
 -- Por ahora solo la tabla users (necesaria para el inicio de sesión).
 -- Las demás tablas se agregarán a medida que se implementen los módulos.
 -- =====================================================================

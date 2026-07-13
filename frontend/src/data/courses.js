@@ -49,7 +49,21 @@ function mergedCourses() {
   const local = getLocalCourses();
   const localIds = local.map((c) => c.id);
   const base = MOCK_COURSES.filter((c) => !localIds.includes(c.id));
-  return [...base, ...local];
+  const deltas = getStudentDeltas();
+  // El contador de estudiantes refleja las inscripciones reales
+  return [...base, ...local].map((c) => withStudentCount(c, deltas));
+}
+
+// Devuelve los cursos con el contador de estudiantes ACTUALIZADO:
+// al total base le suma 1 si el usuario actual está inscrito.
+// FUTURO: el backend ya devolverá `students` con el conteo real de la tabla
+// `enrollments` (COUNT), así que esta función desaparece.
+async function withEnrollmentCount(courses) {
+  const enrolled = await getEnrolledIds();
+  return courses.map((c) => ({
+    ...c,
+    students: (c.students || 0) + (enrolled.includes(c.id) ? 1 : 0),
+  }));
 }
 
 // ─── Guards de reglas de negocio ─────────────────────────────────────────────
@@ -74,10 +88,10 @@ export function canEditCourse(course) {
 //         (el backend ya debe devolver solo los permitidos)
 export async function getCourses() {
   const enrolled = await getEnrolledIds();
-  const all = mergedCourses();
-  return all.filter(
+  const visible = mergedCourses().filter(
     (c) => c.visibility === "open" || enrolled.includes(c.id)
   );
+  return withEnrollmentCount(visible);   // contador al día
 }
 
 // REGLA 3 — Cursos del tutor logueado: solo los que él creó.
@@ -86,7 +100,8 @@ export async function getCourses() {
 export async function getTutorCourses() {
   const user = getSession();
   if (user?.role !== "tutor") return [];
-  return mergedCourses().filter((c) => c.tutor_id === user.id);
+  const mine = mergedCourses().filter((c) => c.tutor_id === user.id);
+  return withEnrollmentCount(mine);
 }
 
 // Buscar un curso por su código (Regla 1: así se accede a los privados)
@@ -94,6 +109,21 @@ export async function getTutorCourses() {
 export async function findCourseByCode(code) {
   const clean = code.trim().toUpperCase();
   return mergedCourses().find((c) => c.course_code === clean) || null;
+}
+
+// Ajuste local del contador de estudiantes por curso.
+// MOCK: el backend hará SELECT COUNT(*) FROM enrollments WHERE course_id = X
+function getStudentDeltas() {
+  const saved = localStorage.getItem("studentDeltas");
+  return saved ? JSON.parse(saved) : {};
+}
+function saveStudentDeltas(d) {
+  localStorage.setItem("studentDeltas", JSON.stringify(d));
+}
+
+// Aplica el delta al contador base del curso
+function withStudentCount(course, deltas) {
+  return { ...course, students: (course.students || 0) + (deltas[course.id] || 0) };
 }
 
 // IDs de los cursos en los que el student está inscrito
@@ -118,7 +148,13 @@ export async function joinCourse(id, code = null) {
   }
 
   const ids = await getEnrolledIds();
-  if (!ids.includes(id)) ids.push(id);
+  if (!ids.includes(id)) {
+    ids.push(id);
+    // Incrementa el contador de estudiantes del curso
+    const deltas = getStudentDeltas();
+    deltas[id] = (deltas[id] || 0) + 1;
+    saveStudentDeltas(deltas);
+  }
   localStorage.setItem("enrolled", JSON.stringify(ids));
   return ids;
 }
@@ -126,7 +162,15 @@ export async function joinCourse(id, code = null) {
 // Salirse de un curso
 // FUTURO: await api.del(`/enrollments/${id}`);
 export async function leaveCourse(id) {
-  const ids = (await getEnrolledIds()).filter((x) => x !== id);
+  const before = await getEnrolledIds();
+  const ids = before.filter((x) => x !== id);
+
+  if (before.includes(id)) {
+    // Decrementa el contador de estudiantes del curso
+    const deltas = getStudentDeltas();
+    deltas[id] = (deltas[id] || 0) - 1;
+    saveStudentDeltas(deltas);
+  }
   localStorage.setItem("enrolled", JSON.stringify(ids));
   return ids;
 }

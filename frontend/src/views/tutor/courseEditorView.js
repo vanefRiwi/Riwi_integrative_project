@@ -16,6 +16,7 @@ import { contentTab } from "../../components/editor/contentTab.js";
 import { reviewTab } from "../../components/editor/reviewTab.js";
 import { quizzTab } from "../../components/editor/quizzTab.js";
 import { navigate } from "../../router/router.js";
+import { showToast } from "../../helpers/toast.js";
 import {
   getCourseById,
   createCourse,
@@ -384,14 +385,55 @@ function captureAll(root) {
   captureTab(root);
 }
 
+// Arma el objeto que se envía a la capa de datos (y mañana a la API)
+function buildPayload() {
+  return {
+    title: state.title,
+    instructor: state.instructor,
+    category: state.category,
+    level: state.level,
+    description: state.description,
+    image: state.image || COVER_PRESETS[0],
+    visibility: state.visibility,
+    course_code: state.course_code,
+    sections: state.sections,
+    items: state.items,
+    finalAssessment: state.finalAssessment,
+  };
+}
+
 // ─── Eventos ─────────────────────────────────────────────────────────────────
 function attachEvents(root) {
   initNavbar(root);
 
   root.querySelector(".js-back").addEventListener("click", () => navigate("/tutor"));
   root.querySelector(".js-cancel").addEventListener("click", () => navigate("/tutor"));
-  root.querySelector(".js-preview").addEventListener("click", () => {
-    // TODO: abrir el curso en modo "preview as student"
+  // "Preview as student": guarda primero (para ver el contenido real) y abre la vista de curso
+  root.querySelector(".js-preview").addEventListener("click", async () => {
+    captureAll(root);
+    const msg = root.querySelector(".js-msg");
+
+    if (!state.title.trim()) {
+      msg.style.color = "#dc2626";
+      msg.textContent = "Add a title before previewing";
+      return;
+    }
+
+    const payload = buildPayload();
+    try {
+      if (editingId) {
+        await updateCourse(editingId, payload);
+      } else {
+        const created = await createCourse(payload);
+        editingId = created.id;
+      }
+      // ?preview=1 -> la vista de curso muestra el banner "viewing as a student"
+      // from=editor -> al salir del preview, vuelve AQUÍ (no al home)
+      navigate(`/student/course?id=${editingId}&preview=1&from=editor`);
+    } catch (err) {
+      msg.style.color = "#dc2626";
+      msg.textContent = err.message;
+    }
   });
 
   // Portada
@@ -512,29 +554,20 @@ function attachEvents(root) {
       return;
     }
 
-    const payload = {
-      title: state.title,
-      instructor: state.instructor,
-      category: state.category,
-      level: state.level,
-      description: state.description,
-      image: state.image || COVER_PRESETS[0],
-      visibility: state.visibility,
-      course_code: state.course_code,
-      sections: state.sections,
-      items: state.items,
-      finalAssessment: state.finalAssessment,
-    };
+    const payload = buildPayload();
 
     try {
       if (editingId) {
         await updateCourse(editingId, payload);   // Regla 3 validada dentro
+        showToast("\u2713 Course updated successfully");
       } else {
-        await createCourse(payload);              // Regla 2 validada dentro
+        const created = await createCourse(payload);  // Regla 2 validada dentro
+        editingId = created.id;                        // por si sigue editando
+        showToast("\u2713 Course created successfully");
       }
       msg.style.color = "var(--primary)";
-      msg.textContent = "\u2713 Course saved";
-      setTimeout(() => navigate("/tutor"), 800);
+      msg.textContent = "";
+      setTimeout(() => navigate("/tutor"), 1200);
     } catch (err) {
       msg.style.color = "#dc2626";
       msg.textContent = err.message;
@@ -559,12 +592,16 @@ function attachTabEvents(root) {
     root.querySelectorAll("[data-add-type]").forEach((btn) =>
       btn.addEventListener("click", () => {
         captureAll(root);
-        const type = btn.dataset.addType;
-        const block = { id: Date.now(), type };
-        if (type === "readme") block.md = "";
-        else block.url = "";
-        items.content.push(block);
-        state.menuOpen = false;      // se cierra al agregar el bloque
+        // Formato IDÉNTICO al de la API: { id, titulo, tipo, datos, orden }
+        // `datos` es un ÚNICO campo; su significado depende de `tipo`.
+        items.content.push({
+          id: Date.now(),
+          titulo: "",
+          tipo: btn.dataset.addType,     // "readme" | "youtube" | "canva"
+          datos: "",
+          orden: items.content.length + 1,
+        });
+        state.menuOpen = false;          // se cierra al agregar el bloque
         rerender();
       })
     );
@@ -574,16 +611,25 @@ function attachTabEvents(root) {
         captureAll(root);
         const id = Number(btn.dataset.removeBlock);
         items.content = items.content.filter((b) => b.id !== id);
+        // Reordenar para que `orden` quede consecutivo (1, 2, 3...)
+        items.content.forEach((b, i) => (b.orden = i + 1));
         rerender();
       })
     );
 
+    // Todo el contenido va al MISMO campo `datos`, sin importar el tipo
     root.querySelectorAll("[data-block-input]").forEach((input) =>
       input.addEventListener("input", () => {
         const block = items.content.find((b) => b.id === Number(input.dataset.blockInput));
-        if (!block) return;
-        if (block.type === "readme") block.md = input.value;
-        else block.url = input.value;
+        if (block) block.datos = input.value;
+      })
+    );
+
+    // Título del bloque (común a todos los tipos)
+    root.querySelectorAll("[data-block-title]").forEach((input) =>
+      input.addEventListener("input", () => {
+        const block = items.content.find((b) => b.id === Number(input.dataset.blockTitle));
+        if (block) block.titulo = input.value;
       })
     );
   }
