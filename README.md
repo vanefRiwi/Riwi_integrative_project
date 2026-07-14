@@ -1,4 +1,4 @@
-# LearnHub — Proyecto Integrador (LMS)
+# Lumora — Proyecto Integrador (LMS)
 
 Plataforma de cursos con dos roles: **student** y **tutor**.
 
