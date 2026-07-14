@@ -17,6 +17,8 @@ import { reviewTab } from "../../components/editor/reviewTab.js";
 import { quizzTab } from "../../components/editor/quizzTab.js";
 import { navigate } from "../../router/router.js";
 import { showToast } from "../../helpers/toast.js";
+import { confirmModal } from "../../components/confirmModal.js";
+import { promptModal } from "../../components/promptModal.js";
 import {
   getCourseById,
   createCourse,
@@ -81,7 +83,7 @@ function sectionItems(secId) {
       content: [],
       review: {
         format: "fill-blanks", blankText: "", pairs: [], steps: [],
-        instantFeedback: true, countsGrade: true, points: 100,
+        instantFeedback: true,        // las reviews NO son evaluativas
       },
       quizz: { questions: [], countsGrade: true, points: 50 },
     };
@@ -369,9 +371,8 @@ function captureTab(root) {
 
   if (state.selTab === "review") {
     const txt = body.querySelector('[name="blankText"]');
-    const pts = body.querySelector('[name="revPoints"]');
     if (txt) items.review.blankText = txt.value;
-    if (pts) items.review.points = Number(pts.value);
+    // (sin puntos ni countsGrade: las reviews no son evaluativas)
   }
 
   if (state.selTab === "quizz") {
@@ -495,27 +496,40 @@ function attachEvents(root) {
 
   // Renombrar sección (doble clic)
   root.querySelectorAll(".js-sec-title").forEach((el) =>
-    el.addEventListener("dblclick", (e) => {
+    el.addEventListener("dblclick", async (e) => {
       e.stopPropagation();
       const id = Number(el.dataset.secId);
       const current = state.sections.find((s) => s.id === id);
-      const name = prompt("Section name:", current.title);
-      if (name) {
-        captureAll(root);
-        current.title = name;
-        rerender();
-      }
+
+      const name = await promptModal({
+        title: "Rename section",
+        message: "Enter a new name for this section.",
+        value: current.title,
+        placeholder: "Section name",
+        confirmText: "Rename",
+      });
+      if (!name) return;
+
+      captureAll(root);
+      current.title = name;
+      rerender();
     })
   );
 
   // Eliminar sección
   root.querySelectorAll("[data-delete-section]").forEach((btn) =>
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("click", async (e) => {
       e.stopPropagation();                 // que no seleccione la sección al borrar
       const id = Number(btn.dataset.deleteSection);
       const sec = state.sections.find((s) => s.id === id);
 
-      if (!confirm(`Delete "${sec.title}"? Its content will be lost.`)) return;
+      const ok = await confirmModal({
+        title: "Delete section?",
+        message: `"${sec.title}" and all its content will be permanently removed. This cannot be undone.`,
+        confirmText: "Delete",
+        danger: true,
+      });
+      if (!ok) return;
 
       captureAll(root);
 
@@ -741,7 +755,7 @@ function attachTabEvents(root) {
       captureAll(root);
       const name = btn.dataset.toggle;
       if (name === "instantFeedback") items.review.instantFeedback = !items.review.instantFeedback;
-      if (name === "revCounts") items.review.countsGrade = !items.review.countsGrade;
+      // (revCounts eliminado: las reviews no cuentan para la nota)
       if (name === "quizCounts") {
         if (state.selTab === "final") {
           state.finalAssessment.countsGrade = !state.finalAssessment.countsGrade;

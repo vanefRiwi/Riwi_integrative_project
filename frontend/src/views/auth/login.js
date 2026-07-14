@@ -36,7 +36,7 @@ export function loginView() {
         <div class="relative z-10">
           <div class="flex items-center gap-2.5 mb-12">
             <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white">${icon.cap}</div>
-            <span class="text-xl font-bold text-white" style="font-family: var(--font-family-display)">Name</span>
+            <span class="text-xl font-bold text-white" style="font-family: var(--font-family-display)">Lumora</span>
           </div>
           <h2 class="text-4xl font-bold text-white leading-tight mb-4" style="font-family: var(--font-family-display)">Learn without<br/>limits.</h2>
           <p class="text-green-100 text-lg leading-relaxed max-w-sm">Access world-class courses taught by industry experts. Advance your career at your own pace.</p>
@@ -62,19 +62,13 @@ export function loginView() {
           <!-- logo visible solo en móvil -->
           <div class="lg:hidden flex items-center gap-2.5 mb-8">
             <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white" style="background: var(--primary)">${icon.cap}</div>
-            <span class="text-xl font-bold" style="font-family: var(--font-family-display)">Name</span>
+            <span class="text-xl font-bold" style="font-family: var(--font-family-display)">Lumora</span>
           </div>
 
           <h1 class="text-2xl font-bold mb-1" style="font-family: var(--font-family-display)">Welcome back</h1>
           <p class="mb-8 text-sm" style="color: var(--muted-foreground)">Sign in to your account to continue learning.</p>
 
           <!-- Tabs Student / Tutor -->
-          <div class="flex rounded-xl p-1 mb-6 gap-1" style="background: var(--muted)">
-            <button type="button" data-role="student"
-              class="js-tab flex-1 py-2 text-sm font-semibold rounded-lg transition-all"></button>
-            <button type="button" data-role="tutor"
-              class="js-tab flex-1 py-2 text-sm font-semibold rounded-lg transition-all"></button>
-          </div>
 
           <!-- Formulario -->
           <form class="js-login-form space-y-4">

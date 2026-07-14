@@ -149,8 +149,7 @@ function reviewPanel() {
   const rev = items?.review;
   if (!rev) return emptyBox("No review activity in this section.");
 
-  // Solo se puede completar UNA vez
-  const alreadyDone = Boolean(progress.reviews[selSection]);
+  // ⚠️ Las reviews son PRÁCTICA: se pueden repetir siempre (no son evaluativas)
   let body = "";
 
   if (rev.format === "fill-blanks") {
@@ -215,9 +214,8 @@ function reviewPanel() {
       <h2 class="text-lg font-bold mb-1" style="font-family: var(--font-family-display)">Review Activity</h2>
       <p class="text-sm mb-5" style="color: var(--muted-foreground)">Complete the activity below and check your answers for instant feedback.</p>
       <div class="rounded-xl p-5 mb-4" style="background: var(--muted)">${body}</div>
-      ${alreadyDone
-        ? `<p class="text-sm text-center font-medium" style="color: var(--primary)">\u2713 Already completed</p>`
-        : `<button class="js-check-review w-full py-3 rounded-xl text-sm font-semibold text-white cursor-pointer" style="background: var(--primary)">Check answers</button>`}
+      <button class="js-check-review w-full py-3 rounded-xl text-sm font-semibold text-white cursor-pointer"
+              style="background: var(--primary)">${feedback ? "Try again" : "Check answers"}</button>
       ${result}
     </div>`;
 }
@@ -234,7 +232,15 @@ function quizzPanel(isFinal = false) {
       const picked = answers[q.id] === oi;
       let border = "var(--border)", bg = "var(--muted)";
       if (feedback) {
-        if (oi === q.correct) { border = "var(--primary)"; bg = "var(--secondary)"; }
+        // Marca visual tras enviar. `q.correct` solo se usa para PINTAR, nunca
+        // para calificar (eso lo hace el service / el backend).
+        //
+        // FUTURO: el backend NO enviará `correct`. Entonces la respuesta de
+        // POST /api/submissions debe incluir `correctAnswers: { [qId]: index }`
+        // y aquí se leerá de ahí: const right = feedback.correctAnswers?.[q.id];
+        const right = feedback.correctAnswers?.[q.id] ?? q.correct;
+
+        if (oi === right) { border = "var(--primary)"; bg = "var(--secondary)"; }
         else if (picked) { border = "#dc2626"; bg = "#fee2e2"; }
       } else if (picked) { border = "var(--primary)"; bg = "var(--secondary)"; }
 
@@ -504,6 +510,13 @@ function attachEvents(root) {
 
   // Review: comprobar respuestas
   root.querySelector(".js-check-review")?.addEventListener("click", async () => {
+    // Si ya había feedback, este clic es "Try again": limpia y vuelve a empezar
+    if (feedback) {
+      feedback = null;
+      answers = {};
+      return rerender();
+    }
+
     const rev = items.review;
     let results = [];
 
@@ -536,14 +549,15 @@ function attachEvents(root) {
     const isFinal = e.currentTarget.dataset.final === "true";
     const quiz = isFinal ? finalAssessment : items.quizz;
 
-    const correct = quiz.questions.filter((q) => answers[q.id] === q.correct).length;
-    const total = quiz.questions.length;
-    const points = Math.round((correct / total) * (quiz.points || 50));
+    // ⚠️ La vista NO califica: solo envía las respuestas al service.
+    // Hoy el service corrige localmente; mañana lo hará el SERVIDOR y esta
+    // vista no cambiará (ya lee el resultado de la respuesta).
+    const { progress: newProgress, result } = isFinal
+      ? await submitFinal(courseId, { quiz, answers })
+      : await submitQuizz(courseId, selSection, { quiz, answers });
 
-    feedback = { correct, total, points };
-
-    if (isFinal) progress = await submitFinal(courseId, { score: correct, total, points });
-    else progress = await submitQuizz(courseId, selSection, { score: correct, total, points });
+    progress = newProgress;
+    feedback = result;      // { correct, total, points } -> lo devuelve el service
 
     rerender();
   });

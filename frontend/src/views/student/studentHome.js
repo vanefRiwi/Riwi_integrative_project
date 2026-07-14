@@ -6,6 +6,8 @@ import { navbar, initNavbar } from "../../components/navbar.js";
 import { courseCard } from "../../components/courseCard.js";
 import { getSession } from "../../helpers/auth.js";
 import { navigate } from "../../router/router.js";
+import { confirmModal } from "../../components/confirmModal.js";
+import { openJoinCourseModal } from "../../components/joinCourseModal.js";
 import {
   getCourses,
   getEnrolledIds,
@@ -160,7 +162,26 @@ function bindCardActions(root) {
   root.querySelectorAll("[data-leave]").forEach((btn) =>
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
-      enrolledIds = await leaveCourse(Number(btn.dataset.leave));
+      const id = Number(btn.dataset.leave);
+      const course = allCourses.find((c) => c.id === id);
+
+      // Confirmación antes de abandonar el curso
+      const ok = await confirmModal({
+        title: "Leave this course?",
+        message: `You'll be unenrolled from "${course?.title || "this course"}". Your progress will be lost and you'll need to join again to continue.`,
+        confirmText: "Leave course",
+        danger: true,
+      });
+      if (!ok) return;
+
+      enrolledIds = await leaveCourse(id);
+
+      // ⚠️ Hay que RECARGAR el catálogo, no solo repintar:
+      // si el curso era PRIVADO, al salirse deja de ser visible y debe
+      // desaparecer del home (getCourses solo devuelve los "open" + los
+      // privados en los que sigues inscrito).
+      allCourses = await getCourses();
+
       rerender();
     })
   );
@@ -184,9 +205,14 @@ function attachEvents(root) {
     refreshGrid(root);
   });
 
-  // Modal "Join Courses" (pendiente de implementar)
+  // Modal "Join a course": por código (privados) o explorando los abiertos
   root.querySelector(".js-join-modal").addEventListener("click", () => {
-    // TODO: abrir el modal de "Join a course" con código
+    openJoinCourseModal(async () => {
+      // Al inscribirse, recargamos los datos y repintamos el home
+      allCourses = await getCourses();
+      enrolledIds = await getEnrolledIds();
+      rerender();
+    });
   });
 
   bindCardActions(root);

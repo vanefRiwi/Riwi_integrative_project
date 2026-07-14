@@ -105,7 +105,7 @@ export function registerView() {
         <div class="relative z-10">
           <div class="flex items-center gap-2.5 mb-12">
             <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white">${icon.cap}</div>
-            <span class="text-xl font-bold text-white" style="font-family: var(--font-family-display)">Name</span>
+            <span class="text-xl font-bold text-white" style="font-family: var(--font-family-display)">Lumora</span>
           </div>
           <h2 class="text-4xl font-bold text-white leading-tight mb-4" style="font-family: var(--font-family-display)">Start your<br/>journey today.</h2>
           <p class="text-green-100 text-lg leading-relaxed max-w-sm">Join thousands of learners and Tutors building real skills for a better career.</p>
@@ -119,7 +119,7 @@ export function registerView() {
         <div class="w-full max-w-md">
           <div class="lg:hidden flex items-center gap-2.5 mb-8">
             <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white" style="background: var(--primary)">${icon.cap}</div>
-            <span class="text-xl font-bold" style="font-family: var(--font-family-display)">Name</span>
+            <span class="text-xl font-bold" style="font-family: var(--font-family-display)">Lumora</span>
           </div>
 
           ${stepsIndicator()}

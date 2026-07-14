@@ -23,14 +23,14 @@ import { getSession } from "../helpers/auth.js";
 // visibility→ "open" (cualquiera lo ve) | "code" (requiere código) (Regla 1)
 // course_code→ solo si visibility === "code"
 const MOCK_COURSES = [
-  { id: 1, tutor_id: 2, visibility: "open", course_code: null,      title: "Python for Data Science",     category: "Programming", instructor: "Dr. Sarah Chen",      students: 4820, level: "Intermediate", image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=220&fit=crop&auto=format" },
-  { id: 2, tutor_id: 2, visibility: "open", course_code: null,      title: "UX Design Fundamentals",      category: "Design",      instructor: "Prof. Marco Reyes",   students: 3210, level: "Beginner",     image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=220&fit=crop&auto=format" },
-  { id: 3, tutor_id: 2, visibility: "code", course_code: "EDU-A3K9", title: "Machine Learning Essentials", category: "AI & ML",     instructor: "Dr. Aisha Nkosi",     students: 6140, level: "Advanced",     image: "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=400&h=220&fit=crop&auto=format" },
-  { id: 4, tutor_id: 2, visibility: "open", course_code: null,      title: "Web Development Bootcamp",    category: "Programming", instructor: "James Whitfield",     students: 8930, level: "Beginner",     image: "https://images.unsplash.com/photo-1593720219276-0b1eacd0aef4?w=400&h=220&fit=crop&auto=format" },
-  { id: 5, tutor_id: 3, visibility: "open", course_code: null,      title: "Business Analytics",          category: "Business",    instructor: "Prof. Elena Vasquez", students: 2870, level: "Intermediate", image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=220&fit=crop&auto=format" },
-  { id: 6, tutor_id: 3, visibility: "open", course_code: null,      title: "Digital Marketing Strategy",  category: "Marketing",   instructor: "Lisa Thornton",       students: 5120, level: "Beginner",     image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=220&fit=crop&auto=format" },
-  { id: 7, tutor_id: 3, visibility: "code", course_code: "AWS-7X2M", title: "Cloud Architecture AWS",      category: "Cloud",       instructor: "Dr. Rohan Mehta",     students: 3780, level: "Advanced",     image: "https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=400&h=220&fit=crop&auto=format" },
-  { id: 8, tutor_id: 3, visibility: "open", course_code: null,      title: "Project Management Pro",      category: "Management",  instructor: "Sophie Adler",        students: 4290, level: "Intermediate", image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&h=220&fit=crop&auto=format" },
+  { id: 1, tutor_id: 2, visibility: "open", course_code: null,      title: "Python for Data Science",     category: "Programming", instructor: "Dr. Sarah Chen",      baseStudents: 4820, level: "Intermediate", image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=220&fit=crop&auto=format" },
+  { id: 2, tutor_id: 2, visibility: "open", course_code: null,      title: "UX Design Fundamentals",      category: "Design",      instructor: "Prof. Marco Reyes",   baseStudents: 3210, level: "Beginner",     image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=220&fit=crop&auto=format" },
+  { id: 3, tutor_id: 2, visibility: "code", course_code: "EDU-A3K9", title: "Machine Learning Essentials", category: "AI & ML",     instructor: "Dr. Aisha Nkosi",     baseStudents: 6140, level: "Advanced",     image: "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=400&h=220&fit=crop&auto=format" },
+  { id: 4, tutor_id: 2, visibility: "open", course_code: null,      title: "Web Development Bootcamp",    category: "Programming", instructor: "James Whitfield",     baseStudents: 8930, level: "Beginner",     image: "https://images.unsplash.com/photo-1593720219276-0b1eacd0aef4?w=400&h=220&fit=crop&auto=format" },
+  { id: 5, tutor_id: 3, visibility: "open", course_code: null,      title: "Business Analytics",          category: "Business",    instructor: "Prof. Elena Vasquez", baseStudents: 2870, level: "Intermediate", image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=220&fit=crop&auto=format" },
+  { id: 6, tutor_id: 3, visibility: "open", course_code: null,      title: "Digital Marketing Strategy",  category: "Marketing",   instructor: "Lisa Thornton",       baseStudents: 5120, level: "Beginner",     image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=220&fit=crop&auto=format" },
+  { id: 7, tutor_id: 3, visibility: "code", course_code: "AWS-7X2M", title: "Cloud Architecture AWS",      category: "Cloud",       instructor: "Dr. Rohan Mehta",     baseStudents: 3780, level: "Advanced",     image: "https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=400&h=220&fit=crop&auto=format" },
+  { id: 8, tutor_id: 3, visibility: "open", course_code: null,      title: "Project Management Pro",      category: "Management",  instructor: "Sophie Adler",        baseStudents: 4290, level: "Intermediate", image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&h=220&fit=crop&auto=format" },
 ];
 
 // Secciones de ejemplo (para el conteo de stats del tutor)
@@ -49,21 +49,43 @@ function mergedCourses() {
   const local = getLocalCourses();
   const localIds = local.map((c) => c.id);
   const base = MOCK_COURSES.filter((c) => !localIds.includes(c.id));
-  const deltas = getStudentDeltas();
-  // El contador de estudiantes refleja las inscripciones reales
-  return [...base, ...local].map((c) => withStudentCount(c, deltas));
+  // Devuelve el dato CRUDO. El contador se calcula aparte (withEnrollmentCount),
+  // para no tener dos sistemas sumando a la vez.
+  return [...base, ...local];
 }
 
 // Devuelve los cursos con el contador de estudiantes ACTUALIZADO:
 // al total base le suma 1 si el usuario actual está inscrito.
 // FUTURO: el backend ya devolverá `students` con el conteo real de la tabla
 // `enrollments` (COUNT), así que esta función desaparece.
+// ⚠️ SEPARACIÓN CLAVE entre dato guardado y dato calculado:
+//
+//   baseStudents  -> número de inscritos "de fondo" (los otros alumnos ficticios).
+//                    Es INMUTABLE: se guarda una vez y jamás se recalcula.
+//   students      -> lo que se MUESTRA = baseStudents + (¿yo estoy inscrito? 1 : 0)
+//                    Es un valor DERIVADO: se calcula al vuelo, nunca se persiste.
+//
+// Antes se guardaba `students` ya sumado y al volver a guardar se acumulaba,
+// mostrando 2 cuando solo había 1 inscrito. Por eso ahora el campo persistido
+// es `baseStudents` y `students` se deriva siempre.
+//
+// FUTURO: el backend devolverá `students` con el COUNT real de `enrollments`,
+// así que esta función desaparece por completo.
 async function withEnrollmentCount(courses) {
   const enrolled = await getEnrolledIds();
-  return courses.map((c) => ({
-    ...c,
-    students: (c.students || 0) + (enrolled.includes(c.id) ? 1 : 0),
-  }));
+
+  return courses.map((c) => {
+    // baseStudents es la fuente de verdad. Si un mock antiguo solo trae
+    // `students`, lo tomamos como base (retrocompatibilidad).
+    const base = c.baseStudents ?? c.students ?? 0;
+    const mine = enrolled.includes(c.id) ? 1 : 0;
+
+    return {
+      ...c,
+      baseStudents: base,                      // se conserva intacto
+      students: Math.max(0, base + mine),      // derivado, nunca negativo
+    };
+  });
 }
 
 // ─── Guards de reglas de negocio ─────────────────────────────────────────────
@@ -111,21 +133,6 @@ export async function findCourseByCode(code) {
   return mergedCourses().find((c) => c.course_code === clean) || null;
 }
 
-// Ajuste local del contador de estudiantes por curso.
-// MOCK: el backend hará SELECT COUNT(*) FROM enrollments WHERE course_id = X
-function getStudentDeltas() {
-  const saved = localStorage.getItem("studentDeltas");
-  return saved ? JSON.parse(saved) : {};
-}
-function saveStudentDeltas(d) {
-  localStorage.setItem("studentDeltas", JSON.stringify(d));
-}
-
-// Aplica el delta al contador base del curso
-function withStudentCount(course, deltas) {
-  return { ...course, students: (course.students || 0) + (deltas[course.id] || 0) };
-}
-
 // IDs de los cursos en los que el student está inscrito
 // FUTURO: const { data } = await api.get("/enrollments"); return data.map(e => e.course_id);
 export async function getEnrolledIds() {
@@ -148,30 +155,26 @@ export async function joinCourse(id, code = null) {
   }
 
   const ids = await getEnrolledIds();
-  if (!ids.includes(id)) {
-    ids.push(id);
-    // Incrementa el contador de estudiantes del curso
-    const deltas = getStudentDeltas();
-    deltas[id] = (deltas[id] || 0) + 1;
-    saveStudentDeltas(deltas);
-  }
+  if (!ids.includes(id)) ids.push(id);
   localStorage.setItem("enrolled", JSON.stringify(ids));
+  // El contador NO se toca aquí: se deriva de `enrolled` en withEnrollmentCount().
   return ids;
 }
 
-// Salirse de un curso
+// Salirse de un curso.
+// Efectos:
+//   - El contador de inscritos BAJA (withEnrollmentCount deja de sumar el +1).
+//   - Si el curso era PRIVADO, desaparece del catálogo (getCourses lo filtra).
+//   - Se borra el progreso: si vuelve a entrar, empieza de cero.
 // FUTURO: await api.del(`/enrollments/${id}`);
+//         (el backend borra la fila de `enrollments` y sus `submissions`)
 export async function leaveCourse(id) {
-  const before = await getEnrolledIds();
-  const ids = before.filter((x) => x !== id);
-
-  if (before.includes(id)) {
-    // Decrementa el contador de estudiantes del curso
-    const deltas = getStudentDeltas();
-    deltas[id] = (deltas[id] || 0) - 1;
-    saveStudentDeltas(deltas);
-  }
+  const ids = (await getEnrolledIds()).filter((x) => x !== id);
   localStorage.setItem("enrolled", JSON.stringify(ids));
+
+  // Limpia el progreso de ese curso (quizzes, reviews, examen final)
+  localStorage.removeItem(`progress:${id}`);
+
   return ids;
 }
 
@@ -185,6 +188,39 @@ export async function getTutorStats() {
     totalSections: courses.length * SECTIONS_PER_COURSE,
     sectionsPerCourse: SECTIONS_PER_COURSE,
   };
+}
+
+// ─── Unirse a un curso (modal "Join a course") ───────────────────────────────
+
+// REGLA 1 — Cursos ABIERTOS disponibles para explorar en el modal.
+// Los privados (visibility="code") NO se listan: solo se accede con el código.
+// Excluye los cursos en los que el estudiante ya está inscrito... no: los
+// muestra igual, pero marcados como "Joined" (así el usuario ve el estado).
+// FUTURO: const { data } = await api.get("/courses?visibility=open"); return data;
+export async function getOpenCourses() {
+  const open = mergedCourses().filter((c) => c.visibility === "open");
+  return withEnrollmentCount(open);
+}
+
+// REGLA 1 — Unirse a un curso PRIVADO usando su código.
+// Devuelve el curso si el código es válido; lanza error si no.
+// FUTURO: const { data } = await api.post("/enrollments/by-code", { code });
+//         (el backend valida el código y crea la inscripción)
+export async function joinCourseByCode(code) {
+  const clean = (code || "").trim().toUpperCase();
+  if (!clean) throw new Error("Enter a course code.");
+
+  const course = await findCourseByCode(clean);
+  if (!course) throw new Error("Invalid course code. Check it and try again.");
+
+  const enrolled = await getEnrolledIds();
+  if (enrolled.includes(course.id)) {
+    throw new Error("You're already enrolled in this course.");
+  }
+
+  // Inscribe pasando el código (joinCourse lo valida de nuevo)
+  await joinCourse(course.id, clean);
+  return course;
 }
 
 // ─── Escritura de cursos (crear / editar) ────────────────────────────────────
@@ -229,7 +265,7 @@ export async function createCourse(payload) {
     ...payload,
     id: Date.now(),                 // FUTURO: lo asigna el SERIAL de la BD
     tutor_id: user.id,              // Regla 3: queda ligado a su creador
-    students: 0,
+    baseStudents: 0,                // curso nuevo: 0 inscritos de fondo
     // El código se genera UNA sola vez, al crear el curso privado.
     course_code: isPrivate ? (payload.course_code || generateCourseCode()) : null,
   };
@@ -261,7 +297,18 @@ export async function updateCourse(id, payload) {
   // Si vuelve a "open", el código se conserva guardado (por si lo reactiva),
   // pero no se usa mientras sea público.
 
-  const updated = { ...existing, ...payload, course_code, tutor_id: existing.tutor_id };
+  // ⚠️ Nunca persistir `students` (es derivado). Solo `baseStudents` es real.
+  // Si el payload trae `students` (calculado en una vista), lo descartamos.
+  const { students: _ignored, ...cleanPayload } = payload;
+
+  const updated = {
+    ...existing,
+    ...cleanPayload,
+    course_code,
+    tutor_id: existing.tutor_id,                                  // no reasignable
+    baseStudents: existing.baseStudents ?? existing.students ?? 0, // se conserva
+  };
+  delete updated.students;   // el derivado se recalcula al leer, no se guarda
 
   const list = getLocalCourses();
   const idx = list.findIndex((c) => c.id === Number(id));

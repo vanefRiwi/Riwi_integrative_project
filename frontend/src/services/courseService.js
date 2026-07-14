@@ -1,4 +1,30 @@
 // ─── Course Service ───────────────────────────────────────────────────────────
+//
+// ╔═══════════════════════════════════════════════════════════════════════════╗
+// ║  🚨 REQUISITO BLOQUEANTE PARA EL BACKEND — LEER ANTES DE INTEGRAR        ║
+// ╠═══════════════════════════════════════════════════════════════════════════╣
+// ║                                                                           ║
+// ║  HOY (mock): el frontend recibe las preguntas CON el campo `correct` y    ║
+// ║  califica localmente. Esto es INSEGURO: cualquier estudiante abre         ║
+// ║  DevTools y ve todas las respuestas correctas.                            ║
+// ║                                                                           ║
+// ║  AL INTEGRAR EL BACKEND, es OBLIGATORIO:                                  ║
+// ║                                                                           ║
+// ║   1. GET /api/sections/:id/items                                          ║
+// ║      -> NUNCA debe incluir el campo `correct` en las preguntas.           ║
+// ║         El servidor lo elimina antes de responder.                        ║
+// ║                                                                           ║
+// ║   2. POST /api/submissions                                                ║
+// ║      -> Recibe SOLO las respuestas del alumno.                            ║
+// ║         El SERVIDOR compara, califica y devuelve { score, total, points }. ║
+// ║                                                                           ║
+// ║  ⚠️ Esto CAMBIARÁ el frontend: submitQuizz() dejará de calcular el score  ║
+// ║     localmente y pasará a leerlo de la respuesta del backend.             ║
+// ║     Está previsto y aislado en este archivo (ver submitQuizz).            ║
+// ║                                                                           ║
+// ║  Ver: QUIZZES_Y_REVIEWS.md · Criterio de aceptación de la HU de backend.  ║
+// ╚═══════════════════════════════════════════════════════════════════════════╝
+//
 // Puerta de entrada al contenido de un curso (secciones, items, progreso).
 //
 // 🔌 INTEGRACIÓN: descomenta `api` y reemplaza el cuerpo de cada función.
@@ -89,12 +115,28 @@ export async function getProgress(courseId) {
 }
 
 // POST /api/submissions  -> guarda el resultado de un quizz
-export async function submitQuizz(courseId, sectionId, { score, total, points }) {
-  // FUTURO: await api.post("/submissions", { section_id, answers, ... });
+// ⚠️ La CALIFICACIÓN vive aquí, NO en la vista.
+//
+// Recibe las RESPUESTAS del alumno (no el score ya calculado). Hoy corrige
+// localmente contra el mock; mañana el SERVIDOR corrige y devuelve el score.
+// La vista solo envía respuestas y muestra el resultado: no sabe corregir.
+//
+// FUTURO (backend obligatorio):
+//   const { data } = await api.post("/submissions", { item_id, answers });
+//   return { progress: await getProgress(courseId), result: data };
+//   ...y este archivo deja de ver `q.correct` (el backend nunca lo envía).
+export async function submitQuizz(courseId, sectionId, { quiz, answers }) {
+  // ── Corrección (esto se MUEVE al servidor al integrar) ──
+  const correct = quiz.questions.filter((q) => answers[q.id] === q.correct).length;
+  const total = quiz.questions.length;
+  const points = Math.round((correct / total) * (quiz.points || 50));
+
   const p = await getProgress(courseId);
-  p.quizzes[sectionId] = { score, total, points };
+  p.quizzes[sectionId] = { score: correct, total, points };
   localStorage.setItem(key(courseId), JSON.stringify(p));
-  return p;
+
+  // Devuelve progreso + resultado (misma forma que devolverá la API)
+  return { progress: p, result: { correct, total, points } };
 }
 
 // POST /api/submissions  -> guarda el resultado de una review
@@ -107,11 +149,18 @@ export async function submitReview(courseId, sectionId, { correct }) {
   return p;
 }
 
-export async function submitFinal(courseId, { score, total, points }) {
+// Igual que submitQuizz: la corrección vive aquí, no en la vista.
+// FUTURO: la hace el servidor (POST /api/submissions con item_id del final).
+export async function submitFinal(courseId, { quiz, answers }) {
+  const correct = quiz.questions.filter((q) => answers[q.id] === q.correct).length;
+  const total = quiz.questions.length;
+  const points = Math.round((correct / total) * (quiz.points || 200));
+
   const p = await getProgress(courseId);
-  p.final = { score, total, points };
+  p.final = { score: correct, total, points };
   localStorage.setItem(key(courseId), JSON.stringify(p));
-  return p;
+
+  return { progress: p, result: { correct, total, points } };
 }
 
 // ── Reglas de desbloqueo (lock progresivo) ───────────────────────────────────
