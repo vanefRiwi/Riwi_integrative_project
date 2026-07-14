@@ -22,7 +22,7 @@ Conexión en DBeaver:
 |----------|-------------|
 | Host     | localhost   |
 | Puerto   | **5433**    |
-| Database | learnhub    |
+| Database | lumora    |
 | Usuario  | postgres    |
 | Password | postgres123 |
 
