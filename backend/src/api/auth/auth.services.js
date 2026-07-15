@@ -1,28 +1,53 @@
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { authRepository } from "./auth.repository.js";
 
 export const authServices = {
-  // Valida credenciales y devuelve { token, user }
+  /**
+   * Login logic (task #7)
+   */
   login: async (email, password) => {
-    const user = await authRepository.findByEmail(email);
-    if (!user) {
-      throw Object.assign(new Error("Credenciales inválidas"), { status: 401 });
-    }
+    const user = await authRepository.findUserByEmail(email);
+    if (!user) return null; // Unregistered email.
 
-    const validPassword = await bcrypt.compare(password, user.password_hash);
-    if (!validPassword) {
-      throw Object.assign(new Error("Credenciales inválidas"), { status: 401 });
-    }
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    if (!isPasswordValid) return null; // Wrong password.
 
+    // We sign the valid JWT for 24 hours
     const token = jwt.sign(
       { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES || "7d" }
+      process.env.JWT_SECRET || "lumora_fallback_secret",
+      { expiresIn: "24h" }
     );
 
-    // No devolver el hash al cliente
-    const { password_hash, ...safeUser } = user;
-    return { token, user: safeUser };
+    return {
+      token,
+      user: {
+        id: user.id,
+        fullName: user.full_name,
+        email: user.email,
+        role: user.role,
+        learningGoal: user.learning_goal
+      }
+    };
   },
+
+  /**
+   * Signup logic (task #8)
+   */
+  registerUser: async (userData) => {
+    const existingUser = await authRepository.findUserByEmail(userData.email);
+    if (existingUser) throw new Error("EMAIL_ALREADY_TAKEN");
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(userData.password, salt);
+
+    return await authRepository.createUser({
+      fullName: userData.fullName,
+      email: userData.email,
+      passwordHash: hashedPassword,
+      role: userData.role,
+      learningGoal: userData.learningGoal || null
+    });
+  }
 };
