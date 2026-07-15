@@ -6,7 +6,7 @@ export const authServices = {
   /**
    * Login logic (task #7)
    */
-  login: async (email, password) => {
+  loginUser: async (email, password) => {
     const user = await authRepository.findUserByEmail(email);
     if (!user) return null; // Unregistered email.
 
@@ -24,10 +24,10 @@ export const authServices = {
       token,
       user: {
         id: user.id,
-        fullName: user.full_name,
+        full_name: user.full_name,
         email: user.email,
         role: user.role,
-        learningGoal: user.learning_goal
+        learning_goal: user.learning_goal
       }
     };
   },
@@ -43,11 +43,11 @@ export const authServices = {
     const hashedPassword = await bcrypt.hash(userData.password, salt);
 
     const [newUser] = await authRepository.createUser({
-      fullName: userData.full_name, // Aseguramos mapear el input
+      full_name: userData.full_name, // Aseguramos mapear el input
       email: userData.email,
       passwordHash: hashedPassword,
       role: userData.role,
-      learningGoal: userData.learning_goal || null
+      learning_goal: userData.learning_goal || null
     });
 
     const token = jwt.sign(
