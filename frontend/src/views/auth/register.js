@@ -119,7 +119,7 @@ export function registerView() {
         <div class="w-full max-w-md">
           <div class="lg:hidden flex items-center gap-2.5 mb-8">
             <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white" style="background: var(--primary)">${icon.cap}</div>
-            <span class="text-xl font-bold" style="font-family: var(--font-family-display)">Name</span>
+            <span class="text-xl font-bold" style="font-family: var(--font-family-display)">Lumora</span>
           </div>
 
           ${stepsIndicator()}

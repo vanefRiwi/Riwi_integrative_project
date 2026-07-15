@@ -4,9 +4,12 @@
 
 import { navbar, initNavbar } from "../../components/navbar.js";
 import { getSession, logout } from "../../helpers/auth.js";
+import { getProfile, updateProfile, LEARNING_GOALS } from "../../services/userService.js";
+import { showToast } from "../../helpers/toast.js";
 import { navigate } from "../../router/router.js";
 
-const GOAL_OPTIONS = ["Career change", "Skill upgrade", "Academic study", "Personal interest", "Teaching"];
+// Las metas vienen del service (una sola fuente de verdad)
+const GOAL_OPTIONS = LEARNING_GOALS;
 
 const logoutIcon = `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>`;
 
@@ -75,23 +78,40 @@ export function initProfile() {
   const root = document.getElementById("app");
   initNavbar(root);
 
-  // Guardar cambios (por ahora solo actualiza la sesión local, sin backend)
+  // Guardar cambios -> SIEMPRE a través del service.
+  // ⚠️ La vista NO toca localStorage: eso vive en services/userService.js.
+  //    Cuando exista PUT /api/users/me, solo cambia el service.
   const saveBtn = root.querySelector(".js-save");
-  saveBtn.addEventListener("click", () => {
-    const user = getSession() || {};
-    user.full_name = root.querySelector('[name="fullName"]').value;
-    user.email = root.querySelector('[name="email"]').value;
-    user.learning_goal = root.querySelector('[name="goal"]').value;
-    localStorage.setItem("user", JSON.stringify(user));
+  saveBtn.addEventListener("click", async () => {
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving...";
 
-    saveBtn.textContent = "\u2713 Changes saved";
-    saveBtn.style.background = "var(--secondary)";
-    saveBtn.style.color = "var(--primary)";
-    setTimeout(() => {
+    try {
+      await updateProfile({
+        full_name: root.querySelector('[name="fullName"]').value,
+        email: root.querySelector('[name="email"]').value,
+        learning_goal: root.querySelector('[name="goal"]').value,
+      });
+
+      saveBtn.textContent = "\u2713 Changes saved";
+      saveBtn.style.background = "var(--secondary)";
+      saveBtn.style.color = "var(--primary)";
+
+      setTimeout(() => {
+        saveBtn.textContent = "Save changes";
+        saveBtn.style.background = "var(--primary)";
+        saveBtn.style.color = "#fff";
+        saveBtn.disabled = false;
+        // Repinta la vista para reflejar el nombre nuevo (avatar + navbar)
+        const app = document.getElementById("app");
+        app.innerHTML = profileView();
+        initProfile();
+      }, 1500);
+    } catch (err) {
+      showToast(err.message, "error");
       saveBtn.textContent = "Save changes";
-      saveBtn.style.background = "var(--primary)";
-      saveBtn.style.color = "#fff";
-    }, 2000);
+      saveBtn.disabled = false;
+    }
   });
 
   // Log out: limpia sesión y vuelve al login
