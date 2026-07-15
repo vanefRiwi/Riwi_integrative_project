@@ -42,12 +42,29 @@ export const authServices = {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(userData.password, salt);
 
-    return await authRepository.createUser({
-      fullName: userData.fullName,
+    const [newUser] = await authRepository.createUser({
+      fullName: userData.full_name, // Aseguramos mapear el input
       email: userData.email,
       passwordHash: hashedPassword,
       role: userData.role,
-      learningGoal: userData.learningGoal || null
+      learningGoal: userData.learning_goal || null
     });
+
+    const token = jwt.sign(
+      { id: newUser.id, role: newUser.role },
+      process.env.JWT_SECRET || "lumora_fallback_secret",
+      { expiresIn: "24h" }
+    );
+
+    return {
+      token,
+      user: {
+        id: newUser.id,
+        full_name: newUser.full_name,
+        email: newUser.email,
+        role: newUser.role,
+        learning_goal: newUser.learning_goal
+      }
+    };
   }
 };
