@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import authRoutes from "./src/api/auth/auth.routes.js";
+import courseRoutes from "./src/api/course/course.routes.js";
 import { errorHandler } from "./src/utils/errorHandler.js";
 import { verifyConnection } from "./src/config/postgres/postgres.db.js"; 
 
@@ -11,14 +12,19 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// Auth route for now
+ 
+// Auth route
 app.use("/api/auth", authRoutes);
 
-// TODO: montar el resto de módulos a medida que se implementen
+// Course route: 
+app.use("/api/courses", courseRoutes);
+
+
+// TODO: mount the rest of the modules on the go.
+
 // app.use("/api/users", userRoutes);
-// app.use("/api/courses", courseRoutes);
 // ...
+
 
 app.get("/", (req, res) => res.json({ ok: true, message: "Lumora API 🚀" })); //
 
