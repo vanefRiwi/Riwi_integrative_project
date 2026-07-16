@@ -168,3 +168,11 @@ export function speak(text) {
 
     window.speechSynthesis.speak(utterance);
 }
+
+// NOTE (QA): this speak() function duplicates most of what speakText()
+// already does (same lang/rate defaults, same cancel-before-speak
+// behavior), but it does NOT update the isSpeaking flag or reuse the
+// module-level `utterance` variable. Any UI relying on isSpeechPlaying()
+// to reflect state will be out of sync if this function is used instead
+// of speakText(). Recommend consolidating into a single function, or
+// clarifying in code where/why this legacy version is still needed.
