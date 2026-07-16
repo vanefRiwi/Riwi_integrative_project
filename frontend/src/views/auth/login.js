@@ -62,19 +62,13 @@ export function loginView() {
           <!-- logo visible solo en móvil -->
           <div class="lg:hidden flex items-center gap-2.5 mb-8">
             <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white" style="background: var(--primary)">${icon.cap}</div>
-            <span class="text-xl font-bold" style="font-family: var(--font-family-display)">Name</span>
+            <span class="text-xl font-bold" style="font-family: var(--font-family-display)">Lumora</span>
           </div>
 
           <h1 class="text-2xl font-bold mb-1" style="font-family: var(--font-family-display)">Welcome back</h1>
           <p class="mb-8 text-sm" style="color: var(--muted-foreground)">Sign in to your account to continue learning.</p>
 
           <!-- Tabs Student / Tutor -->
-          <div class="flex rounded-xl p-1 mb-6 gap-1" style="background: var(--muted)">
-            <button type="button" data-role="student"
-              class="js-tab flex-1 py-2 text-sm font-semibold rounded-lg transition-all"></button>
-            <button type="button" data-role="tutor"
-              class="js-tab flex-1 py-2 text-sm font-semibold rounded-lg transition-all"></button>
-          </div>
 
           <!-- Formulario -->
           <form class="js-login-form space-y-4">
