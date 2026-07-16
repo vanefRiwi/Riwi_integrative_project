@@ -1,42 +1,170 @@
-let currentUtterance = null;
+import { marked } from "marked";
 
-export async function speak(text) {
-    if (!text) return;
+// ─────────────────────────────────────────────────────────────
+// LumiVoice - Text To Speech Service
+// This service contains all speech-related logic.
+// The UI should only call these exported functions.
+// ─────────────────────────────────────────────────────────────
 
-    speechSynthesis.cancel();
+let utterance = null;
+let currentRate = 1;
+let isSpeaking = false;
 
-    currentUtterance = new SpeechSynthesisUtterance(text);
+/**
+ * Reads plain text aloud.
+ * @param {string} text
+ */
+export function speakText(text = "") {
+    if (!text.trim()) return;
 
-    currentUtterance.lang = "en-US";
-    currentUtterance.rate = 1;
-    currentUtterance.pitch = 1;
-    currentUtterance.volume = 1;
+    stopSpeech();
 
-    speechSynthesis.speak(currentUtterance);
+    utterance = new SpeechSynthesisUtterance(text);
+
+    utterance.rate = currentRate;
+    utterance.lang = "en-US";
+
+    utterance.onstart = () => {
+        isSpeaking = true;
+    };
+
+    utterance.onend = () => {
+        isSpeaking = false;
+    };
+
+    utterance.onerror = () => {
+        isSpeaking = false;
+    };
+
+    speechSynthesis.speak(utterance);
 }
 
-export function pause() {
+/**
+ * Pauses the current speech.
+ */
+export function pauseSpeech() {
     if (speechSynthesis.speaking) {
         speechSynthesis.pause();
     }
 }
 
-export function resume() {
+/*Resumes paused speech.
+ */
+export function resumeSpeech() {
     if (speechSynthesis.paused) {
         speechSynthesis.resume();
     }
 }
 
-export function stop() {
+/*Stops any current speech.
+*/
+
+export function stopSpeech() {
     speechSynthesis.cancel();
+    isSpeaking = false;
 }
 
-export function setRate(rate) {
-    if (currentUtterance) {
-        currentUtterance.rate = rate;
+/**
+ * Changes the speech speed.
+ * Supported values:
+ * 0.75
+ * 1
+ * 1.5
+ */
+export function setSpeechRate(rate = 1) {
+    currentRate = rate;
+}
+
+/**
+ * Returns true if speech is currently playing.
+ */
+export function isSpeechPlaying() {
+    return isSpeaking;
+}
+
+/**
+ * Converts Markdown into plain text.
+ * This allows the assistant to read lessons naturally.
+ */
+export function extractTextFromMarkdown(markdown = "") {
+    const html = marked.parse(markdown);
+
+    const temp = document.createElement("div");
+    temp.innerHTML = html;
+
+    return temp.textContent || "";
+}
+
+/**
+ * Reads Markdown content aloud.
+ */
+export function speakMarkdown(markdown = "") {
+    const text = extractTextFromMarkdown(markdown);
+
+    speakText(text);
+}
+
+/**
+ * Placeholder for AI summarization.
+ *
+ * Later this function will call:
+ *
+ * Frontend
+ *      ↓
+ * Agent
+ *      ↓
+ * OpenAI / Gemini
+ *
+ */
+export async function summarizeText(markdown = "") {
+
+    // TODO:
+    // Replace with Agent request
+
+    console.log("AI summary not implemented yet.");
+
+    return extractTextFromMarkdown(markdown);
+
+}
+
+/**
+ * Generates an AI summary and reads it.
+ *
+ * If the AI fails,
+ * LumiVoice automatically reads
+ * the original lesson instead.
+ */
+export async function summarizeAndSpeak(markdown = "") {
+
+    try {
+
+        const summary = await summarizeText(markdown);
+
+        speakText(summary);
+
+    } catch (error) {
+
+        console.error("AI Summary failed:", error);
+
+        speakMarkdown(markdown);
+
     }
-}
 
-export async function summarize(markdown) {
-    throw new Error("Not implemented");
+}
+// =========================
+// COMPATIBILIDAD
+// =========================
+
+export function speak(text) {
+    if (!text) return;
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    utterance.lang = "en-US";
+    utterance.rate = 1;
+    utterance.pitch = 1;
+
+    window.speechSynthesis.speak(utterance);
 }
