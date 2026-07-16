@@ -5,6 +5,7 @@
 
 import { getSession, logout } from "../helpers/auth.js";
 import { navigate } from "../router/router.js";
+import { speak } from "../services/ttService.js";
 
 // Íconos SVG inline (equivalentes a los de lucide del diseño)
 const icon = {
@@ -108,6 +109,7 @@ export function initNavbar(root = document) {
   const btn = wrap.querySelector(".js-avatar-btn");
   const menu = wrap.querySelector(".js-dropdown");
   const chevron = wrap.querySelector(".js-chevron");
+  const aiButton = root.querySelector(".js-ai-assistant");
 
   // Abrir / cerrar dropdown
   btn.addEventListener("click", (e) => {
@@ -140,4 +142,11 @@ export function initNavbar(root = document) {
     logout();
     navigate("/login");
   });
+
+  // AI Voice Assistant
+  if (aiButton) {
+    aiButton.addEventListener("click", () => {
+      speak("Hello! this is the test of the AI Voice Assistant.");
+    });
+  }
 }
