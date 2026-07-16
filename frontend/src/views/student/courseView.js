@@ -9,6 +9,7 @@
 // Sirve también como "Preview as student" para el tutor (?preview=1).
 
 import { navbar, initNavbar } from "../../components/navbar.js";
+import { closeBar } from "../../components/voiceAssistantBar.js";
 import { renderContentList } from "../../components/contentRenderer.js";
 import { navigate } from "../../router/router.js";
 import { getSession } from "../../helpers/auth.js";
@@ -454,6 +455,16 @@ export function courseView() {
     </div>`;
 }
 
+// Publica la sección actual para el asistente de voz (LumiVoice).
+// La barra (voiceAssistantBar.js) lee de aquí qué leer en voz alta.
+function syncVoiceContext() {
+  const sec = sections.find((s) => s.id === selSection);
+  window.__lumivoice = {
+    sectionTitle: sec?.title || course?.title || "",
+    section: items || {},   // { welcome, contents, review, quizz }
+  };
+}
+
 function rerender() {
   const app = document.getElementById("app");
   app.innerHTML = courseView();
@@ -470,6 +481,8 @@ function attachEvents(root) {
     navigate(previewFrom === "editor" ? `/tutor/editor?id=${courseId}` : "/tutor");
 
   root.querySelector(".js-back")?.addEventListener("click", () => {
+    closeBar();                 // detiene la voz y cierra la barra LumiVoice
+    window.__lumivoice = null;
     if (!previewMode) return navigate("/student");
     exitPreview();
   });
@@ -493,6 +506,7 @@ function attachEvents(root) {
       }
       answers = {};
       feedback = null;
+      syncVoiceContext();
       rerender();
     })
   );
@@ -597,6 +611,8 @@ export async function initCourseView() {
   feedback = null;
 
   items = await getSectionItems(courseId, selSection);
+
+  syncVoiceContext();
 
   root.innerHTML = courseView();
   attachEvents(root);
