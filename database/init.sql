@@ -1,7 +1,7 @@
 -- =====================================================================
--- LumORA - Schema inicial
--- Por ahora solo la tabla users (necesaria para el inicio de sesión).
--- Las demás tablas se agregarán a medida que se implementen los módulos.
+-- LUMORA - Initial schema
+-- We're adding the users table, which is required for the login.
+-- Remaining tables will be added on the go along with the new modules.
 -- =====================================================================
 
 CREATE TABLE IF NOT EXISTS users (
@@ -14,11 +14,12 @@ CREATE TABLE IF NOT EXISTS users (
     created_at    TIMESTAMP DEFAULT NOW()
 );
 
--- Usuario de prueba para el login.
--- El hash corresponde a la contraseña: "password123"
--- (generado con bcrypt; reemplázalo por los tuyos cuando implementes register)
+-- This is a test user for the login.
+-- Hash belongs to the password: "password123"
+-- This is supposed to be generated with bcrypt at the backend logic.
+-- This will be adding their own ones, this will be replaced when the register module gets added.
+
 INSERT INTO users (full_name, email, password_hash, role, learning_goal) VALUES
     ('Jordan Kim', 'jordan.kim@example.com', '$2b$10$a35mJA1iYdE8GaNMWduT1.Vi5B49AWrpn0cQOwx93xJh4mobvAdOa', 'student', 'Career change'),
-    ('Alex Rivera', 'alex.rivera@example.com', '$2b$10$SIpIC9D7vWDN3TLS5p7M/udcJ/ffZCssxPej8KrPdbdyJLhu0MBV2', 'tutor', 'Teaching'),
-    ('Elena Vasquez', 'elena.vasquez@example.com', '$2b$10$DmW58C/NNJbQwjWvu8mIHemcnXzpMamKI4BmeLPftMDQzBpTTd5M2', 'tutor', 'Teaching')
+    ('Alex Rivera', 'alex.rivera@example.com', '$2b$10$SIpIC9D7vWDN3TLS5p7M/udcJ/ffZCssxPej8KrPdbdyJLhu0MBV2', 'tutor', 'Teaching')
 ON CONFLICT DO NOTHING;

@@ -1,10 +1,9 @@
 import { Router } from "express";
-import { authControllers } from "./auth.controllers.js";
-import { validateBody } from "../../middlewares/validation.middleware.js";
+import { login, register } from "./auth.controllers.js";
 
 const router = Router();
 
-// Ruta necesaria para el inicio de sesión
-router.post("/login", validateBody(["email", "password"]), authControllers.login);
+router.post("/login", login);
+router.post("/register", register);
 
 export default router;
