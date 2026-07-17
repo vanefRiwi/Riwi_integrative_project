@@ -1,13 +1,13 @@
-// ─── MOCK: Estudiantes inscritos y su progreso ────────────────────────────────
-// ⚠️ Formato pensado para el backend.
-// FUTURO: GET /api/courses/:id/students -> devuelve estudiantes con sus submissions.
+// ─── MOCK: Enrolled students and their progress ────────────────────────────────
+//  Format designed for the backend.
+// FUTURE: GET /api/courses/:id/students -> returns students with their submissions.
 //
 //   StudentProgress = {
 //     id, full_name, email,
 //     progress: { quizzes: { [sectionId]: {score,total,points} }, final: {...} }
 //   }
-// El frontend calcula la nota con calculateFinalGrade() sobre ese `progress`,
-// de modo que la fórmula sea IDÉNTICA para el student y para el tutor.
+// The frontend calculates the grade using `calculateFinalGrade()` based on that `progress`,
+// so that the formula is IDENTICAL for both the student and the instructor.
 
 export const MOCK_ENROLLED_STUDENTS = {
   // key = course_id
@@ -62,7 +62,7 @@ export const MOCK_ENROLLED_STUDENTS = {
     },
     {
       id: 15, full_name: "Emma Walsh", email: "emma.w@example.com",
-      progress: { quizzes: {}, final: null },   // no ha empezado
+      progress: { quizzes: {}, final: null },   // It hasn't started yet
     },
     {
       id: 16, full_name: "Omar Hassan", email: "omar.h@example.com",
@@ -88,7 +88,7 @@ export const MOCK_ENROLLED_STUDENTS = {
   ],
 };
 
-// Estudiantes por defecto para cursos sin datos específicos
+// Default students for courses without specific data
 export const DEFAULT_STUDENTS = [
   {
     id: 20, full_name: "Test Student", email: "test@example.com",

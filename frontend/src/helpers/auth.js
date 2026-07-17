@@ -1,4 +1,4 @@
-// Manejo de sesión en localStorage.
+// localStorage session managment.
 export function saveSession({ token, user }) {
   localStorage.setItem("token", token);
   localStorage.setItem("user", JSON.stringify(user));

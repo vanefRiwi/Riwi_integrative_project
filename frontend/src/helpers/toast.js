@@ -1,8 +1,8 @@
 // ─── Toast ────────────────────────────────────────────────────────────────────
-// Notificación flotante reutilizable (ej. "Course created successfully").
+// Reusable Floating Notification(eg. "Course created successfully").
 
 export function showToast(message, type = "success") {
-  // Quita cualquier toast anterior
+  // Remove any previous toast
   document.querySelector(".js-toast")?.remove();
 
   const colors = {
@@ -22,13 +22,13 @@ export function showToast(message, type = "success") {
   el.textContent = message;
   document.body.appendChild(el);
 
-  // Animación de entrada
+  // Opening Animation
   requestAnimationFrame(() => {
     el.style.opacity = "1";
     el.style.transform = "translateX(-50%) translateY(0)";
   });
 
-  // Salida a los 2.5s
+  // Start at 2.5 seconds
   setTimeout(() => {
     el.style.opacity = "0";
     el.style.transform = "translateX(-50%) translateY(1rem)";
