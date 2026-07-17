@@ -1,0 +1,16 @@
+{
+  "name": "lumora-agent",
+  "version": "1.0.0",
+  "description": "Lumora AI agent: a tiny proxy that holds the AI API key and returns short summaries for the voice assistant.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
