@@ -3,10 +3,13 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+//Google Gemini Service 
+//responsible for comunicating with the Google Gemini API to generate summaries of lessons.
 const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY,
 });
 
+//build the prompt sent to Gemini
 export async function summarizeText(text) {
     try {
         const prompt = `
