@@ -118,15 +118,27 @@ export function speakMarkdown(markdown = "") {
  */
 export async function summarizeText(markdown = "") {
 
-    // TODO:
-    // Replace with Agent request
+    const text = extractTextFromMarkdown(markdown);
 
-    console.log("AI summary not implemented yet.");
+    const response = await fetch("http://localhost:3001/summary", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            text,
+        }),
+    });
 
-    return extractTextFromMarkdown(markdown);
+    if (!response.ok) {
+        throw new Error("Failed to generate summary");
+    }
+
+    const data = await response.json();
+
+    return data.summary;
 
 }
-
 /**
  * Generates an AI summary and reads it.
  *
