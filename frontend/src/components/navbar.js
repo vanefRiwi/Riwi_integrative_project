@@ -2,10 +2,11 @@
 // Barra de navegación superior, réplica del diseño de Figma.
 // Se adapta al rol: el student ve "Home"; el tutor ve "Home" + "Dashboard".
 // Incluye el dropdown del avatar con Profile y Sign Out.
+// El botón del micrófono abre/cierra la barra del asistente de voz (LumiVoice).
 
 import { getSession, logout } from "../helpers/auth.js";
 import { navigate } from "../router/router.js";
-import { speak } from "../services/ttService.js";
+import { openVoiceAssistant } from "./voiceAssistantBar.js";
 
 // Íconos SVG inline (equivalentes a los de lucide del diseño)
 const icon = {
@@ -60,7 +61,7 @@ export function navbar({ active = "home" } = {}) {
           ${tabs}
         </div>
 
-        <!-- Zona derecha: campana + avatar -->
+        <!-- Zona derecha: asistente de voz + avatar -->
         <div class="flex items-center gap-2 shrink-0">
           <!-- Asistente de voz con IA -->
           <button class="js-ai-assistant relative p-2 rounded-lg transition-all cursor-pointer hover:bg-[var(--muted)]"
@@ -143,10 +144,6 @@ export function initNavbar(root = document) {
     navigate("/login");
   });
 
-  // AI Voice Assistant
-  if (aiButton) {
-    aiButton.addEventListener("click", () => {
-      speak("Hello! this is the test of the AI Voice Assistant.");
-    });
-  }
+  // AI Voice Assistant → abre / cierra la barra LumiVoice
+  aiButton?.addEventListener("click", openVoiceAssistant);
 }
