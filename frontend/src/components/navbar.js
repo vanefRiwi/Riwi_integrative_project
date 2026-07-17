@@ -8,19 +8,19 @@ import { getSession, logout } from "../helpers/auth.js";
 import { navigate } from "../router/router.js";
 import { openVoiceAssistant } from "./voiceAssistantBar.js";
 
-// Inline SVG icons (equivalent to lucide icons in the design)
+// Íconos SVG inline (equivalentes a los de lucide del diseño)
 const icon = {
   cap: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`,
   home: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
   dashboard: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>`,
-  // AI Voice Assistant: microphone with sparkles (voice + AI)
+  // AI Voice Assistant: micrófono con destellos (voz + IA)
   aiVoice: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/><path d="m19.5 2.5.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6.6-1.4Z" fill="currentColor" stroke-width="1"/></svg>`,
   chevron: `<svg class="w-4 h-4 js-chevron transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
   user: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
   logout: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>`,
 };
 
-// Returns the initials of a name ("Jordan Kim" -> "JK")
+// Devuelve las iniciales de un nombre ("Jordan Kim" -> "JK")
 function initials(name = "") {
   return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 }
@@ -29,13 +29,13 @@ export function navbar({ active = "home" } = {}) {
   const user = getSession() || { full_name: "Usuario", role: "student" };
   const isTutor = user.role === "tutor";
 
-  // Tab style depending on whether it's active (green) or not.
+  // Estilo de un tab según si está activo (verde) o no.
   const tabStyle = (name) =>
     active === name
       ? `class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all text-white" style="background: var(--primary)"`
       : `class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all" style="color: var(--muted-foreground)"`;
 
-  // Student only sees "Home"; tutor sees "Home" + "Dashboard".
+  // El student solo ve "Home"; el tutor ve "Home" + "Dashboard".
   const tabs = `
     <button data-nav="home" ${tabStyle("home")}>
       ${icon.home}<span class="hidden md:inline">Home</span>
@@ -56,14 +56,14 @@ export function navbar({ active = "home" } = {}) {
           <span class="text-lg font-bold" style="font-family: var(--font-family-display)">Lumora</span>
         </div>
 
-        <!-- Central tabs -->
+        <!-- Tabs centrales -->
         <div class="flex items-center gap-1">
           ${tabs}
         </div>
 
-        <!-- Right side: voice assistant + avatar -->
+        <!-- Zona derecha: asistente de voz + avatar -->
         <div class="flex items-center gap-2 shrink-0">
-          <!-- AI Voice Assistant -->
+          <!-- Asistente de voz con IA -->
           <button class="js-ai-assistant relative p-2 rounded-lg transition-all cursor-pointer hover:bg-[var(--muted)]"
                   title="AI Voice Assistant"
                   style="color: var(--primary)">
@@ -101,8 +101,8 @@ export function navbar({ active = "home" } = {}) {
   `;
 }
 
-// Hooks up navbar events (dropdown, navigation, logout).
-// Called from each home after injecting the navbar.
+// Engancha los eventos del navbar (dropdown, navegación, logout).
+// Se llama desde cada home después de inyectar el navbar.
 export function initNavbar(root = document) {
   const wrap = root.querySelector(".js-dropdown-wrap");
   if (!wrap) return;
@@ -112,14 +112,14 @@ export function initNavbar(root = document) {
   const chevron = wrap.querySelector(".js-chevron");
   const aiButton = root.querySelector(".js-ai-assistant");
 
-  // Open / close dropdown
+  // Abrir / cerrar dropdown
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
     menu.classList.toggle("hidden");
     chevron.style.transform = menu.classList.contains("hidden") ? "" : "rotate(180deg)";
   });
 
-  // Close when clicking outside
+  // Cerrar al hacer click fuera
   document.addEventListener("click", (e) => {
     if (!wrap.contains(e.target)) {
       menu.classList.add("hidden");
@@ -127,7 +127,7 @@ export function initNavbar(root = document) {
     }
   });
 
-  // Navigation of tabs and dropdown
+  // Navegación de los tabs y del dropdown
   root.querySelectorAll("[data-nav]").forEach((el) =>
     el.addEventListener("click", () => {
       const dest = el.dataset.nav;
@@ -144,6 +144,6 @@ export function initNavbar(root = document) {
     navigate("/login");
   });
 
-  // AI Voice Assistant → opens / closes the LumiVoice bar
+  // AI Voice Assistant → abre / cierra la barra LumiVoice
   aiButton?.addEventListener("click", openVoiceAssistant);
 }
