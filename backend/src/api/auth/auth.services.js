@@ -42,12 +42,12 @@ export const authServices = {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(userData.password, salt);
 
-    const [newUser] = await authRepository.createUser({
-      full_name: userData.full_name, // Aseguramos mapear el input
+    const newUser = await authRepository.createUser({
+      fullName: userData.full_name, // Aseguramos mapear el input
       email: userData.email,
       passwordHash: hashedPassword,
       role: userData.role,
-      learning_goal: userData.learning_goal || null
+      learningGoal: userData.learning_goal || null
     });
 
     const token = jwt.sign(

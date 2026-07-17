@@ -1,5 +1,6 @@
 import pkg from "pg";
 import dotenv from "dotenv";
+import { ensureSchema } from "./create-tables.js";
 
 dotenv.config();
 
@@ -31,22 +32,23 @@ pool.on("error", (err) => {
 /**
  * Start verification function
  * Makes sure the backend DOESN'T start if the database is down.
+ * Also, runs the schema (CREATE TABLE IF NOT EXISTS) so that the MVP
+ * deploys without manual migration steps.
  */
 export const verifyConnection = async () => {
   try {
     // We try to get a real connection from the pool immediately.
     const client = await pool.connect();
     console.log("✅ [Database]: Successful initial connection to PostgreSQL through the pool.");
-    
-    const res = await client.query("SELECT COUNT(*) FROM users;");
+    client.release();
+
+    // 🏗️ Creates the tables if they don't exist (idempotent).
+    await ensureSchema();
+
+    const res = await pool.query("SELECT COUNT(*) FROM users;");
     console.log(`📊 [Database]: Structure verified succesfully. Users in DB: ${res.rows[0].count}`);
-    
-    client.release(); // We deploy the client immediately
   } catch (error) {
     console.error("🚨 [Database CRITICAL]: Error connecting to PostgreSQL on start:", error.message);
     process.exit(1);
   }
 };
-
-pool.on("connect", () => console.log("✅ PostgreSQL connected"));
-pool.on("error", (err) => console.error("❌ Pool error:", err));
