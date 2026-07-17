@@ -187,41 +187,63 @@ export function extractQuizText(quiz = {}) {
 // ─── AI Summarization (vía agent/) ───────────────────────────
 
 /**
- * Pide un resumen corto al agent (que habla con OpenAI/Gemini y guarda
- * la API key fuera del frontend). Hoy es un placeholder que devuelve el
- * texto tal cual; cuando el agent esté listo, se reemplaza el cuerpo.
+ * Placeholder for AI summarization.
  *
- *   FUTURO:
- *   const res = await fetch("/agent/summarize", {
- *     method: "POST",
- *     headers: { "Content-Type": "application/json" },
- *     body: JSON.stringify({ text }),
- *   });
- *   const { summary } = await res.json();
- *   return summary;
+ * Later this function will call:
  *
- * @param {string} markdown
- * @returns {Promise<string>}
+ * Frontend
+ *      ↓
+ * Agent
+ *      ↓
+ * OpenAI / Gemini
+ *
  */
 export async function summarizeText(markdown = "") {
-  // TODO: reemplazar por la petición real al agent.
-  console.log("[LumiVoice] AI summary not implemented yet — reading original.");
-  return extractTextFromMarkdown(markdown);
-}
 
+    const text = extractTextFromMarkdown(markdown);
+
+    const response = await fetch("http://localhost:3001/summary", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            text,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to generate summary");
+    }
+
+    const data = await response.json();
+
+    return data.summary;
+
+}
 /**
- * Genera un resumen con IA y lo lee. Si la IA falla, lee el texto
- * original en su lugar (fallback silencioso: nunca se rompe).
- * @param {string} markdown
+ * Generates an AI summary and reads it.
+ *
+ * If the AI fails,
+ * LumiVoice automatically reads
+ * the original lesson instead.
  */
 export async function summarizeAndSpeak(markdown = "") {
-  try {
-    const summary = await summarizeText(markdown);
-    speakText(summary);
-  } catch (error) {
-    console.error("[LumiVoice] AI summary failed, reading original:", error);
-    speakMarkdown(markdown);
-  }
+
+    try {
+
+        const summary = await summarizeText(markdown);
+
+        speakText(summary);
+
+    } catch (error) {
+
+        console.error("AI Summary failed:", error);
+
+        speakMarkdown(markdown);
+
+    }
+
 }
 
 // ─── Compatibilidad ──────────────────────────────────────────
