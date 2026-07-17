@@ -6,7 +6,7 @@
 // key must never live in the frontend, where anyone could read it in
 // DevTools. The browser sends text here; this process talks to the AI.
 //
-//   Frontend (ttsService.summarizeText)  ->  POST /summarize  ->  AI model
+//   Frontend (ttsService.summarizeText)  ->  POST /summarize  ->  AI model.
 //
 // It supports three providers, chosen with AI_PROVIDER in .env:
 //   - "mock"    : no key needed. Returns a naive extractive summary so the
