@@ -1,11 +1,11 @@
 // ─── Tutor Dashboard ──────────────────────────────────────────────────────────
-// Reporte de estudiantes inscritos con sus notas.
+// Report of enrolled students with their grades.
 //
-// La NOTA FINAL se calcula con calculateFinalGrade() — la MISMA función que usa
-// el estudiante en su pestaña "Grades". Una sola fuente de verdad.
+// The FINAL GRADE is calculated with calculateFinalGrade() — the SAME function that
+// the student uses in their "Grades" tab. Single source of truth.
 //
-// Además de la nota definitiva, el tutor puede desplegar cada fila para ver
-// las notas INDIVIDUALES (cada quizz + el examen final).
+// In addition to the final grade, the tutor can expand each row to see
+// INDIVIDUAL GRADES (each quiz + the final exam).
 
 import { navbar, initNavbar } from "../../components/navbar.js";
 import { getTutorCourses } from "../../data/courses.js";
@@ -17,14 +17,14 @@ const icon = {
   chevron: `<svg class="w-4 h-4 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
 };
 
-// ─── Estado ──────────────────────────────────────────────────────────────────
+// ─── State ───────────────────────────────────────────────────────────────────
 let courses = [];
 let selCourseId = null;
 let sections = [];
 let students = [];
-let expanded = new Set();   // filas desplegadas (notas individuales)
+let expanded = new Set();   // expanded rows (individual grades)
 
-// Color según la nota
+// Color based on grade
 function gradeColor(pct) {
   if (pct === null) return "var(--muted-foreground)";
   if (pct >= 80) return "var(--primary)";
@@ -32,13 +32,13 @@ function gradeColor(pct) {
   return "#dc2626";
 }
 
-// Fila desplegable con las notas individuales
+// Expandable row with individual grades
 function studentRow(st) {
   const { grade, breakdown, completed, totalItems } = calculateFinalGrade(sections, st.progress);
   const isOpen = expanded.has(st.id);
   const started = completed > 0;
 
-  // Detalle: cada quizz + el examen final
+  // Detail: each quiz + the final exam
   const detail = breakdown.map((b) => {
     const value = b.status === "graded"
       ? `<span class="text-sm font-bold" style="color: ${gradeColor(b.pct)}">
@@ -58,7 +58,7 @@ function studentRow(st) {
 
   return `
     <div class="mb-2 rounded-xl overflow-hidden" style="border: 1px solid var(--border); background: var(--card)">
-      <!-- Fila principal -->
+      <!-- Main row -->
       <button data-student="${st.id}"
         class="js-row w-full flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-[var(--muted)]">
         <span class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
@@ -73,18 +73,18 @@ function studentRow(st) {
           </span>
         </span>
 
-        <!-- Nota definitiva -->
+        <!-- Final grade -->
         <span class="text-right shrink-0">
           ${started
-            ? `<span class="text-base font-bold" style="color: ${gradeColor(grade)}">${grade}%</span>`
-            : `<span class="text-sm" style="color: var(--muted-foreground)">—</span>`}
+      ? `<span class="text-base font-bold" style="color: ${gradeColor(grade)}">${grade}%</span>`
+      : `<span class="text-sm" style="color: var(--muted-foreground)">—</span>`}
           <span class="block text-xs" style="color: var(--muted-foreground)">Final grade</span>
         </span>
 
         <span style="color: var(--muted-foreground); transform: rotate(${isOpen ? "180deg" : "0"})">${icon.chevron}</span>
       </button>
 
-      <!-- Detalle: notas individuales -->
+      <!-- Detail: individual grades -->
       ${isOpen ? `
         <div class="px-4 pb-4 pt-1" style="border-top: 1px solid var(--border)">
           <p class="text-xs font-semibold mb-2 mt-2 tracking-wide" style="color: var(--muted-foreground)">
@@ -98,7 +98,7 @@ function studentRow(st) {
 export function dashboardView() {
   const course = courses.find((c) => c.id === selCourseId);
 
-  // Promedio del curso (solo entre quienes empezaron)
+  // Course average (only among those who started)
   const grades = students
     .map((st) => calculateFinalGrade(sections, st.progress))
     .filter((g) => g.completed > 0)
@@ -134,28 +134,28 @@ export function dashboardView() {
             You haven't created any courses yet.
           </div>` : `
 
-          <!-- Selector de curso -->
+          <!-- Course selector -->
           <div class="mb-6">
             <label class="block text-sm font-medium mb-1.5">Course</label>
             <select class="js-course w-full sm:w-72 px-4 py-2.5 rounded-xl text-sm outline-none cursor-pointer"
               style="background: var(--card); border: 1px solid var(--border)">${options}</select>
           </div>
 
-          <!-- Estadísticas -->
+          <!-- Statistics -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             ${stat(icon.users, students.length.toLocaleString(), "Enrolled students")}
             ${stat(icon.award, `${avg}%`, "Average final grade")}
           </div>
 
-          <!-- Tabla de estudiantes -->
+          <!-- Student table -->
           <div class="rounded-2xl p-5" style="background: var(--card); border: 1px solid var(--border)">
             <div class="flex items-center justify-between mb-4">
               <h2 class="font-bold" style="font-family: var(--font-family-display)">Enrolled Students</h2>
               <span class="text-xs" style="color: var(--muted-foreground)">Click a row to see individual grades</span>
             </div>
             ${students.length
-              ? students.map(studentRow).join("")
-              : `<p class="text-sm py-6 text-center" style="color: var(--muted-foreground)">No students enrolled yet.</p>`}
+      ? students.map(studentRow).join("")
+      : `<p class="text-sm py-6 text-center" style="color: var(--muted-foreground)">No students enrolled yet.</p>`}
           </div>
         `}
       </main>
@@ -171,14 +171,14 @@ function rerender() {
 function attachEvents(root) {
   initNavbar(root);
 
-  // Cambiar de curso
+  // Change course
   root.querySelector(".js-course")?.addEventListener("change", async (e) => {
     selCourseId = Number(e.target.value);
     expanded.clear();
     await loadCourseData();
   });
 
-  // Desplegar / plegar las notas individuales
+  // Expand / collapse individual grades
   root.querySelectorAll(".js-row").forEach((btn) =>
     btn.addEventListener("click", () => {
       const id = Number(btn.dataset.student);
@@ -188,7 +188,7 @@ function attachEvents(root) {
   );
 }
 
-// Carga secciones + estudiantes del curso seleccionado
+// Loads sections + students of the selected course
 async function loadCourseData() {
   sections = await getSections(selCourseId);
   students = await getEnrolledStudents(selCourseId);
@@ -198,7 +198,7 @@ async function loadCourseData() {
 export async function initDashboard() {
   const root = document.getElementById("app");
 
-  courses = await getTutorCourses();   // Regla 3: solo SUS cursos
+  courses = await getTutorCourses();   // Rule 3: only THEIR courses
   expanded = new Set();
 
   if (!courses.length) {

@@ -1,7 +1,7 @@
-// ─── Pestaña: Content ─────────────────────────────────────────────────────────
-// Bloques de contenido de la sección: Video link, README (Markdown) y Canva.
-// El menú para agregar se despliega HACIA ABAJO con tarjetas grandes,
-// y el botón cambia a "Cancel" mientras está abierto.
+// ─── Tab: Content ─────────────────────────────────────────────────────────
+// Content blocks for the section: Video link, README (Markdown) and Canva.
+// The add menu expands DOWNWARD with large cards,
+// and the button changes to "Cancel" while open.
 
 const icon = {
   video: `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2"/></svg>`,
@@ -11,20 +11,20 @@ const icon = {
   plus: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg>`,
 };
 
-// Íconos grandes para las tarjetas del menú
+// Large icons for menu cards
 const bigIcon = {
   video: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2"/></svg>`,
   readme: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>`,
   canva: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>`,
 };
 
-// Campo del bloque según su TIPO.
-// Todos escriben en el MISMO campo: `datos` (así lo espera la API).
-//   tipo "youtube" -> datos = ID o URL del video
-//   tipo "readme"  -> datos = texto Markdown
-//   tipo "canva"   -> datos = URL de embed
+// Block field based on its TYPE.
+// All write to the SAME field: `datos` (that's what the API expects).
+//   type "youtube" -> datos = video ID or URL
+//   type "readme"  -> datos = Markdown text
+//   type "canva"   -> datos = embed URL
 function blockBody(block) {
-  // Campo "titulo" común a todos los tipos
+  // "titulo" field common to all types
   const tituloField = `
     <label class="block text-xs font-medium mb-1.5">Title</label>
     <input type="text" data-block-title="${block.id}" value="${block.titulo || ""}"
@@ -59,14 +59,14 @@ function blockBody(block) {
       placeholder="https://www.canva.com/design/.../view?embed" />`;
 }
 
-// Etiquetas por TIPO (los mismos valores que usa la API)
+// Labels by TYPE (same values used by the API)
 const LABELS = {
-  youtube: { icon: icon.video, text: "Video link",        color: "var(--primary)" },
-  readme:  { icon: icon.file,  text: "README (Markdown)", color: "var(--primary)" },
-  canva:   { icon: icon.canva, text: "Canva",             color: "#8b3dff" },
+  youtube: { icon: icon.video, text: "Video link", color: "var(--primary)" },
+  readme: { icon: icon.file, text: "README (Markdown)", color: "var(--primary)" },
+  canva: { icon: icon.canva, text: "Canva", color: "#8b3dff" },
 };
 
-// Tarjeta grande del menú desplegable
+// Large card for the dropdown menu
 function menuCard(type, title, desc, iconSvg, tint) {
   return `
     <button data-add-type="${type}"
@@ -109,18 +109,18 @@ export function contentTab(blocks = [], { menuOpen = false } = {}) {
 
       <div class="js-blocks">${list}</div>
 
-      <!-- Alterna entre "Add content block" y "Cancel" -->
+      <!-- Toggles between "Add content block" and "Cancel" -->
       <button class="js-add-block w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium transition-colors"
               style="border: 1px dashed var(--border); color: var(--muted-foreground)">
         ${icon.plus} ${menuOpen ? "Cancel" : "Add content block"}
       </button>
 
-      <!-- Menú desplegable hacia abajo -->
+      <!-- Dropdown menu downward -->
       ${menuOpen ? `
         <div class="mt-3">
-          ${menuCard("youtube", "Video link", "Paste a YouTube or Vimeo link", bigIcon.video,  "#ef4444")}
-          ${menuCard("readme", "README",     "Write the lesson in Markdown",  bigIcon.readme, "#16a34a")}
-          ${menuCard("canva",  "Canva",      "Paste a Canva design link",     bigIcon.canva,  "#00c4cc")}
+          ${menuCard("youtube", "Video link", "Paste a YouTube or Vimeo link", bigIcon.video, "#ef4444")}
+          ${menuCard("readme", "README", "Write the lesson in Markdown", bigIcon.readme, "#16a34a")}
+          ${menuCard("canva", "Canva", "Paste a Canva design link", bigIcon.canva, "#00c4cc")}
         </div>` : ""}
     </div>
   `;

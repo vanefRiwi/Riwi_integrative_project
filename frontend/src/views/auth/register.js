@@ -1,11 +1,11 @@
 // ─── Register View ────────────────────────────────────────────────────────────
-// Wizard de 2 pasos (Account -> Profile), réplica del diseño de Figma.
-// Al completarlo: crea la sesión con el rol elegido y dirige a su home.
+// 2-step wizard (Account -> Profile), replicating the Figma design.
+// Upon completion: log in with the selected role and redirect to the user's home page.
 
 import { navigate } from "../../router/router.js";
 import { saveSession } from "../../helpers/auth.js";
 
-// Estado local de la vista
+// Local view state
 let step = 1;                // 1 = Account, 2 = Profile
 let showPass = false;
 let role = "student";        // "student" | "tutor"
@@ -21,7 +21,7 @@ const icon = {
 
 const GOAL_OPTIONS = ["Career change", "Skill upgrade", "Academic study", "Personal interest", "Teaching"];
 
-// Indicador de pasos (1 Account —— 2 Profile)
+// Step indicator (1 Account —— 2 Profile)
 function stepsIndicator() {
   const dot = (s, label) => {
     const done = step > s;
@@ -39,7 +39,7 @@ function stepsIndicator() {
   return `<div class="flex items-center gap-3 mb-8">${dot(1, "Account")}${dot(2, "Profile")}</div>`;
 }
 
-// Campos del paso 1 (Account)
+// Fields from Step 1 (Account)
 function stepOneFields() {
   return `
     <div>
@@ -67,7 +67,7 @@ function stepOneFields() {
     </div>`;
 }
 
-// Campos del paso 2 (Profile)
+// Fields from Step 2 (Profile)
 function stepTwoFields() {
   const roleBtn = (r, label) => {
     const active = role === r;
@@ -153,7 +153,7 @@ export function registerView() {
   `;
 }
 
-// Guarda lo escrito en el paso actual antes de re-renderizar
+// Save what was written in the current step before re-rendering
 function captureStepData(root) {
   const f = root.querySelector(".js-register-form");
   if (step === 1) {
@@ -166,7 +166,7 @@ function captureStepData(root) {
   }
 }
 
-// Re-renderiza la vista (para cambiar de paso) y re-engancha eventos
+// Re-render the view (to switch steps) and re-attach events
 function rerender() {
   const app = document.getElementById("app");
   app.innerHTML = registerView();
@@ -176,7 +176,7 @@ function rerender() {
 export function initRegister() {
   const root = document.getElementById("app");
 
-  // Mostrar / ocultar contraseña (paso 1)
+  // Show / hide password (step 1)
   const toggle = root.querySelector(".js-toggle-pass");
   if (toggle) {
     toggle.addEventListener("click", () => {
@@ -186,7 +186,7 @@ export function initRegister() {
     });
   }
 
-  // Selección de rol (paso 2)
+  // Role selection (step 2)
   root.querySelectorAll(".js-role").forEach((btn) =>
     btn.addEventListener("click", () => {
       role = btn.dataset.role;
@@ -195,14 +195,14 @@ export function initRegister() {
     })
   );
 
-  // Botón "Back" (paso 2 -> 1)
+  // Role selection (step 2)
   root.querySelector(".js-back")?.addEventListener("click", () => {
     captureStepData(root);
     step = 1;
     rerender();
   });
 
-  // Envío del formulario
+  // Submit the form
   root.querySelector(".js-register-form").addEventListener("submit", (e) => {
     e.preventDefault();
     captureStepData(root);
@@ -213,13 +213,13 @@ export function initRegister() {
       return;
     }
 
-    // ── Paso 2 completado: crear la cuenta ──
-    // Cuando el backend tenga POST /api/auth/register, se reemplaza por:
-    //   const { token, user } = await api.post("/auth/register", { ...form }, { auth: false });
+    // ── Step 2 complete: create the account ──
+    // When the backend has a POST /api/auth/register endpoint, replace it with:
+    //   const { token, user } = await api.post(“/auth/register”, { ...form }, { auth: false });
     //   saveSession({ token, user });
     //
-    // Por ahora (solo frontend) creamos la sesión localmente con el rol elegido,
-    // para poder dirigir al home correcto.
+    // For now (frontend only), we create the session locally with the chosen role,
+    // so we can redirect to the correct home page.
     const newUser = {
       full_name: form.name,
       email: form.email,
@@ -228,10 +228,10 @@ export function initRegister() {
     };
     saveSession({ token: "temp-session", user: newUser });
 
-    // Redirige al home según el rol
+    // Redirects to home depending on role
     const destination = form.role === "tutor" ? "/tutor" : "/student";
 
-    // Reset del wizard para la próxima vez
+    // Reset del wizard state so that if the user logs out and returns to /register, they start fresh.
     step = 1;
     showPass = false;
     role = "student";

@@ -1,14 +1,14 @@
 // ─── Course Editor (Tutor) ────────────────────────────────────────────────────
-// Crear o editar un curso. Réplica del diseño de Figma.
+// Create or edit a course. Replica of Figma design.
 //
-// REGLAS DE NEGOCIO:
-//  - Regla 2: solo un tutor puede crear cursos (guard dentro de createCourse).
-//  - Regla 3: solo el tutor dueño puede editar (guard dentro de updateCourse).
-//  - Regla 1: si el curso es privado, se genera un course_code.
+// BUSINESS RULES:
+//  - Rule 2: only a tutor can create courses (guard inside createCourse).
+//  - Rule 3: only the owning tutor can edit (guard inside updateCourse).
+//  - Rule 1: if the course is private, a course_code is generated.
 //
-// ⚠️ CÓDIGO INMUTABLE: el código se genera UNA sola vez, al marcar "Require
-// course code". Después queda bloqueado: no se puede cambiar ni regenerar
-// (solo copiar). Así, quien ya tiene el código nunca pierde el acceso.
+// ⚠️ IMMUTABLE CODE: the code is generated ONCE, when marking "Require
+// course code". Then it's locked: cannot be changed or regenerated
+// (only copy). This way, whoever has the code never loses access.
 
 import { navbar, initNavbar } from "../../components/navbar.js";
 import { welcomeTab } from "../../components/editor/welcomeTab.js";
@@ -48,9 +48,9 @@ const icon = {
   trophy: `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`,
 };
 
-// ─── Estado del editor ───────────────────────────────────────────────────────
+// ─── Editor state ────────────────────────────────────────────────────────────
 let state = null;
-let editingId = null;   // null = curso nuevo
+let editingId = null;   // null = new course
 
 function blankState() {
   return {
@@ -61,8 +61,8 @@ function blankState() {
     description: "Build real-world skills with hands-on projects and expert guidance.",
     image: "",
     visibility: "open",
-    course_code: null,          // se genera solo al pasar a "code"
-    codeLocked: false,          // ⚠️ una vez true, el código ya no cambia
+    course_code: null,          // generated only when switching to "code"
+    codeLocked: false,          // ⚠️ once true, the code never changes
     sections: [
       { id: 1, title: "Getting Started" },
       { id: 2, title: "Section 2" },
@@ -71,11 +71,11 @@ function blankState() {
     finalAssessment: { questions: [], countsGrade: true, points: 200 },
     selSection: 1,
     selTab: "welcome",          // welcome | content | review | quizz | final
-    menuOpen: false,            // menú de "Add content block" abierto?
+    menuOpen: false,            // "Add content block" menu open?
   };
 }
 
-// Devuelve (creando si hace falta) los items de una sección
+// Returns (creating if needed) the items for a section
 function sectionItems(secId) {
   if (!state.items[secId]) {
     state.items[secId] = {
@@ -83,7 +83,7 @@ function sectionItems(secId) {
       content: [],
       review: {
         format: "fill-blanks", blankText: "", pairs: [], steps: [],
-        instantFeedback: true,        // las reviews NO son evaluativas
+        instantFeedback: true,        // reviews are NOT graded
       },
       quizz: { questions: [], countsGrade: true, points: 50 },
     };
@@ -91,7 +91,7 @@ function sectionItems(secId) {
   return state.items[secId];
 }
 
-// ─── Panel izquierdo ─────────────────────────────────────────────────────────
+// ─── Left panel ───────────────────────────────────────────────────────────────
 function leftPanel() {
   const covers = COVER_PRESETS.map(
     (url) => `
@@ -103,7 +103,7 @@ function leftPanel() {
 
   const sections = state.sections.map((s) => {
     const active = state.selTab !== "final" && state.selSection === s.id;
-    // Solo se permite borrar si queda más de una sección
+    // Can only delete if more than one section remains
     const canDelete = state.sections.length > 1;
     return `
       <div data-section="${s.id}"
@@ -119,7 +119,7 @@ function leftPanel() {
       </div>`;
   }).join("");
 
-  // Caja del código (solo si es privado y ya se generó)
+  // Code box (only if private and already generated)
   const codeBox = state.visibility === "code" && state.course_code
     ? `
       <div class="mt-3 p-3 rounded-lg" style="background: var(--secondary)">
@@ -181,8 +181,8 @@ function leftPanel() {
             <select name="level" class="w-full px-3 py-2 rounded-lg text-sm outline-none"
               style="background: var(--muted); border: 1px solid var(--border)">
               ${["Beginner", "Intermediate", "Advanced"]
-                .map((l) => `<option ${state.level === l ? "selected" : ""}>${l}</option>`)
-                .join("")}
+      .map((l) => `<option ${state.level === l ? "selected" : ""}>${l}</option>`)
+      .join("")}
             </select>
           </div>
           <div>
@@ -231,7 +231,7 @@ function leftPanel() {
   `;
 }
 
-// ─── Panel derecho (pestañas) ────────────────────────────────────────────────
+// ─── Right panel (tabs) ──────────────────────────────────────────────────────
 function rightPanel() {
   if (state.selTab === "final") {
     return `
@@ -258,9 +258,9 @@ function rightPanel() {
 
   const body =
     state.selTab === "content" ? contentTab(items.content, { menuOpen: state.menuOpen })
-    : state.selTab === "review" ? reviewTab(items.review)
-    : state.selTab === "quizz" ? quizzTab(items.quizz)
-    : welcomeTab(items.welcome);
+      : state.selTab === "review" ? reviewTab(items.review)
+        : state.selTab === "quizz" ? quizzTab(items.quizz)
+          : welcomeTab(items.welcome);
 
   const tabName = state.selTab.charAt(0).toUpperCase() + state.selTab.slice(1);
 
@@ -284,7 +284,7 @@ function rightPanel() {
   `;
 }
 
-// ─── Vista completa ──────────────────────────────────────────────────────────
+// ─── Complete view ───────────────────────────────────────────────────────────
 export function courseEditorView() {
   if (!state) state = blankState();
 
@@ -337,7 +337,7 @@ function rerender() {
   attachEvents(app);
 }
 
-// ─── Captura del estado antes de re-renderizar ───────────────────────────────
+// ─── Capture state before re-rendering ───────────────────────────────────────
 function captureLeft(root) {
   const get = (n) => root.querySelector(`[name="${n}"]`)?.value;
   if (get("title") !== undefined) {
@@ -386,7 +386,7 @@ function captureAll(root) {
   captureTab(root);
 }
 
-// Arma el objeto que se envía a la capa de datos (y mañana a la API)
+// Builds the object sent to the data layer (and tomorrow to the API)
 function buildPayload() {
   return {
     title: state.title,
@@ -403,13 +403,13 @@ function buildPayload() {
   };
 }
 
-// ─── Eventos ─────────────────────────────────────────────────────────────────
+// ─── Events ───────────────────────────────────────────────────────────────────
 function attachEvents(root) {
   initNavbar(root);
 
   root.querySelector(".js-back").addEventListener("click", () => navigate("/tutor"));
   root.querySelector(".js-cancel").addEventListener("click", () => navigate("/tutor"));
-  // "Preview as student": guarda primero (para ver el contenido real) y abre la vista de curso
+  // "Preview as student": saves first (to see actual content) and opens course view
   root.querySelector(".js-preview").addEventListener("click", async () => {
     captureAll(root);
     const msg = root.querySelector(".js-msg");
@@ -428,8 +428,8 @@ function attachEvents(root) {
         const created = await createCourse(payload);
         editingId = created.id;
       }
-      // ?preview=1 -> la vista de curso muestra el banner "viewing as a student"
-      // from=editor -> al salir del preview, vuelve AQUÍ (no al home)
+      // ?preview=1 -> course view shows the "viewing as a student" banner
+      // from=editor -> when exiting preview, returns HERE (not to home)
       navigate(`/student/course?id=${editingId}&preview=1&from=editor`);
     } catch (err) {
       msg.style.color = "#dc2626";
@@ -437,7 +437,7 @@ function attachEvents(root) {
     }
   });
 
-  // Portada
+  // Cover image
   root.querySelectorAll("[data-cover]").forEach((btn) =>
     btn.addEventListener("click", () => {
       captureAll(root);
@@ -446,14 +446,14 @@ function attachEvents(root) {
     })
   );
 
-  // ── Visibilidad + generación del código (INMUTABLE) ──
+  // ── Visibility + code generation (IMMUTABLE) ──
   root.querySelectorAll(".js-visibility").forEach((el) =>
     el.addEventListener("click", () => {
       captureAll(root);
       state.visibility = el.dataset.visibility;
 
-      // Se genera SOLO la primera vez que se marca "code".
-      // Si codeLocked ya es true, el código NO se toca nunca más.
+      // Generated ONLY the first time "code" is marked.
+      // If codeLocked is already true, the code is NEVER touched again.
       if (state.visibility === "code" && !state.codeLocked) {
         state.course_code = generateCourseCode();
         state.codeLocked = true;
@@ -462,7 +462,7 @@ function attachEvents(root) {
     })
   );
 
-  // Copiar el código
+  // Copy the code
   root.querySelector(".js-copy-code")?.addEventListener("click", () => {
     navigator.clipboard?.writeText(state.course_code);
     const msg = root.querySelector(".js-msg");
@@ -471,7 +471,7 @@ function attachEvents(root) {
     setTimeout(() => (msg.textContent = ""), 2000);
   });
 
-  // Secciones
+  // Sections
   root.querySelector(".js-add-section").addEventListener("click", () => {
     captureAll(root);
     const id = Date.now();
@@ -494,7 +494,7 @@ function attachEvents(root) {
     })
   );
 
-  // Renombrar sección (doble clic)
+  // Rename section (double-click)
   root.querySelectorAll(".js-sec-title").forEach((el) =>
     el.addEventListener("dblclick", async (e) => {
       e.stopPropagation();
@@ -516,10 +516,10 @@ function attachEvents(root) {
     })
   );
 
-  // Eliminar sección
+  // Delete section
   root.querySelectorAll("[data-delete-section]").forEach((btn) =>
     btn.addEventListener("click", async (e) => {
-      e.stopPropagation();                 // que no seleccione la sección al borrar
+      e.stopPropagation();                 // don't select section when deleting
       const id = Number(btn.dataset.deleteSection);
       const sec = state.sections.find((s) => s.id === id);
 
@@ -533,11 +533,11 @@ function attachEvents(root) {
 
       captureAll(root);
 
-      // Quita la sección y todo su contenido
+      // Remove the section and all its content
       state.sections = state.sections.filter((s) => s.id !== id);
       delete state.items[id];
 
-      // Si borramos la sección seleccionada, saltamos a la primera
+      // If we delete the selected section, jump to the first one
       if (state.selSection === id) {
         state.selSection = state.sections[0].id;
         state.selTab = "welcome";
@@ -546,7 +546,7 @@ function attachEvents(root) {
     })
   );
 
-  // Pestañas
+  // Tabs
   root.querySelectorAll(".js-tab").forEach((btn) =>
     btn.addEventListener("click", () => {
       captureAll(root);
@@ -557,7 +557,7 @@ function attachEvents(root) {
 
   attachTabEvents(root);
 
-  // ── Guardar ──
+  // ── Save ──
   root.querySelector(".js-save").addEventListener("click", async () => {
     captureAll(root);
     const msg = root.querySelector(".js-msg");
@@ -572,11 +572,11 @@ function attachEvents(root) {
 
     try {
       if (editingId) {
-        await updateCourse(editingId, payload);   // Regla 3 validada dentro
+        await updateCourse(editingId, payload);   // Rule 3 validated inside
         showToast("\u2713 Course updated successfully");
       } else {
-        const created = await createCourse(payload);  // Regla 2 validada dentro
-        editingId = created.id;                        // por si sigue editando
+        const created = await createCourse(payload);  // Rule 2 validated inside
+        editingId = created.id;                        // in case they continue editing
         showToast("\u2713 Course created successfully");
       }
       msg.style.color = "var(--primary)";
@@ -589,14 +589,14 @@ function attachEvents(root) {
   });
 }
 
-// ─── Eventos de la pestaña activa ────────────────────────────────────────────
+// ─── Active tab events ───────────────────────────────────────────────────────
 function attachTabEvents(root) {
   const items = state.selTab === "final" ? null : sectionItems(state.selSection);
 
   // ── Content ──
   const addBtn = root.querySelector(".js-add-block");
   if (addBtn) {
-    // Abre/cierra el menú. El botón dice "Cancel" mientras está abierto.
+    // Opens/closes the menu. Button says "Cancel" while open.
     addBtn.addEventListener("click", () => {
       captureAll(root);
       state.menuOpen = !state.menuOpen;
@@ -606,8 +606,8 @@ function attachTabEvents(root) {
     root.querySelectorAll("[data-add-type]").forEach((btn) =>
       btn.addEventListener("click", () => {
         captureAll(root);
-        // Formato IDÉNTICO al de la API: { id, titulo, tipo, datos, orden }
-        // `datos` es un ÚNICO campo; su significado depende de `tipo`.
+        // IDENTICAL format to API: { id, titulo, tipo, datos, orden }
+        // `datos` is a SINGLE field; its meaning depends on `type`.
         items.content.push({
           id: Date.now(),
           titulo: "",
@@ -615,7 +615,7 @@ function attachTabEvents(root) {
           datos: "",
           orden: items.content.length + 1,
         });
-        state.menuOpen = false;          // se cierra al agregar el bloque
+        state.menuOpen = false;          // closes when adding block
         rerender();
       })
     );
@@ -625,13 +625,13 @@ function attachTabEvents(root) {
         captureAll(root);
         const id = Number(btn.dataset.removeBlock);
         items.content = items.content.filter((b) => b.id !== id);
-        // Reordenar para que `orden` quede consecutivo (1, 2, 3...)
+        // Reorder so `orden` is consecutive (1, 2, 3...)
         items.content.forEach((b, i) => (b.orden = i + 1));
         rerender();
       })
     );
 
-    // Todo el contenido va al MISMO campo `datos`, sin importar el tipo
+    // All content goes to the SAME `datos` field, regardless of type
     root.querySelectorAll("[data-block-input]").forEach((input) =>
       input.addEventListener("input", () => {
         const block = items.content.find((b) => b.id === Number(input.dataset.blockInput));
@@ -639,7 +639,7 @@ function attachTabEvents(root) {
       })
     );
 
-    // Título del bloque (común a todos los tipos)
+    // Block title (common to all types)
     root.querySelectorAll("[data-block-title]").forEach((input) =>
       input.addEventListener("input", () => {
         const block = items.content.find((b) => b.id === Number(input.dataset.blockTitle));
@@ -648,7 +648,7 @@ function attachTabEvents(root) {
     );
   }
 
-  // ── Review: formato ──
+  // ── Review: format ──
   root.querySelectorAll("[data-format]").forEach((btn) =>
     btn.addEventListener("click", () => {
       captureAll(root);
@@ -657,7 +657,7 @@ function attachTabEvents(root) {
     })
   );
 
-  // Review: pares
+  // Review: pairs
   root.querySelector(".js-add-pair")?.addEventListener("click", () => {
     captureAll(root);
     items.review.pairs.push({ id: Date.now(), term: "", def: "" });
@@ -683,7 +683,7 @@ function attachTabEvents(root) {
     })
   );
 
-  // Review: pasos
+  // Review: steps
   root.querySelector(".js-add-step")?.addEventListener("click", () => {
     captureAll(root);
     items.review.steps.push({ id: Date.now(), text: "" });
@@ -703,7 +703,7 @@ function attachTabEvents(root) {
     })
   );
 
-  // ── Quizz / Final Assessment ──
+  // ── Quiz / Final Assessment ──
   const quiz = state.selTab === "final" ? state.finalAssessment : items?.quizz;
 
   root.querySelector(".js-add-question")?.addEventListener("click", () => {
@@ -755,7 +755,7 @@ function attachTabEvents(root) {
       captureAll(root);
       const name = btn.dataset.toggle;
       if (name === "instantFeedback") items.review.instantFeedback = !items.review.instantFeedback;
-      // (revCounts eliminado: las reviews no cuentan para la nota)
+      // (revCounts removed: reviews don't count for grade)
       if (name === "quizCounts") {
         if (state.selTab === "final") {
           state.finalAssessment.countsGrade = !state.finalAssessment.countsGrade;
@@ -772,7 +772,7 @@ function attachTabEvents(root) {
 export async function initCourseEditor() {
   const root = document.getElementById("app");
 
-  // ?id=X en la URL -> editar un curso existente
+  // ?id=X in URL -> edit existing course
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
 
@@ -785,7 +785,7 @@ export async function initCourseEditor() {
       state = {
         ...base,
         ...course,
-        // Si ya tenía código, queda bloqueado desde el inicio (inmutable)
+        // If it already had code, it's locked from the start (immutable)
         codeLocked: Boolean(course.course_code),
         sections,
         items: course.items || {},

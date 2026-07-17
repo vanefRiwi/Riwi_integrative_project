@@ -1,6 +1,6 @@
 // ─── Profile View ─────────────────────────────────────────────────────────────
-// Perfil del usuario (student o tutor), réplica del diseño de Figma.
-// Lleva el navbar arriba. Incluye "Save changes" y "Log out".
+// User profile (student or tutor), replica of Figma design.
+// Has navbar at top. Includes "Save changes" and "Log out".
 
 import { navbar, initNavbar } from "../../components/navbar.js";
 import { getSession, logout } from "../../helpers/auth.js";
@@ -8,7 +8,7 @@ import { getProfile, updateProfile, LEARNING_GOALS } from "../../services/userSe
 import { showToast } from "../../helpers/toast.js";
 import { navigate } from "../../router/router.js";
 
-// Las metas vienen del service (una sola fuente de verdad)
+// Goals come from the service (single source of truth)
 const GOAL_OPTIONS = LEARNING_GOALS;
 
 const logoutIcon = `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>`;
@@ -28,7 +28,7 @@ export function profileView() {
 
       <div class="w-full max-w-[500px] mx-auto px-4 py-12" style="font-family: var(--font-family-body)">
 
-        <!-- Avatar + nombre + rol -->
+        <!-- Avatar + name + role -->
         <div class="flex flex-col items-center mb-8">
           <div class="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-bold mb-4 shadow-lg"
                style="background: var(--primary); font-family: var(--font-family-display)">
@@ -38,7 +38,7 @@ export function profileView() {
           <span class="text-xs font-semibold px-3 py-1 rounded-full" style="background: var(--secondary); color: var(--primary)">${roleLabel}</span>
         </div>
 
-        <!-- Tarjeta de campos -->
+        <!-- Fields card -->
         <div class="rounded-2xl p-6 space-y-5" style="background: var(--card); border: 1px solid var(--border)">
           <div>
             <label class="block text-sm font-medium mb-1.5">Full name</label>
@@ -64,7 +64,7 @@ export function profileView() {
                   style="background: var(--primary)">Save changes</button>
         </div>
 
-        <!-- Log out (separado, debajo de la tarjeta) -->
+        <!-- Log out (separate, below the card) -->
         <button class="js-logout mt-3 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-red-600 transition-all"
                 style="border: 1px solid var(--border)">
           ${logoutIcon} Log out
@@ -78,9 +78,9 @@ export function initProfile() {
   const root = document.getElementById("app");
   initNavbar(root);
 
-  // Guardar cambios -> SIEMPRE a través del service.
-  // ⚠️ La vista NO toca localStorage: eso vive en services/userService.js.
-  //    Cuando exista PUT /api/users/me, solo cambia el service.
+  // Save changes -> ALWAYS through the service.
+  // ⚠️ The view does NOT touch localStorage: that lives in services/userService.js.
+  //    When PUT /api/users/me exists, only the service changes.
   const saveBtn = root.querySelector(".js-save");
   saveBtn.addEventListener("click", async () => {
     saveBtn.disabled = true;
@@ -102,7 +102,7 @@ export function initProfile() {
         saveBtn.style.background = "var(--primary)";
         saveBtn.style.color = "#fff";
         saveBtn.disabled = false;
-        // Repinta la vista para reflejar el nombre nuevo (avatar + navbar)
+        // Re-renders the view to reflect the new name (avatar + navbar)
         const app = document.getElementById("app");
         app.innerHTML = profileView();
         initProfile();
@@ -114,7 +114,7 @@ export function initProfile() {
     }
   });
 
-  // Log out: limpia sesión y vuelve al login
+  // Log out: clears session and returns to login
   root.querySelector(".js-logout").addEventListener("click", () => {
     logout();
     navigate("/login");

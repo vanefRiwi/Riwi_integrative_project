@@ -1,5 +1,5 @@
-// Capa central de comunicación con el backend.
-const BASE_URL = "/api"; // Vite hace proxy a http://localhost:3000 en dev
+// Central communication layer with the backend.
+const BASE_URL = "/api"; // Vite proxies to http://localhost:3000 in dev
 
 async function request(endpoint, { method = "GET", body, auth = true } = {}) {
   const headers = { "Content-Type": "application/json" };
@@ -13,7 +13,7 @@ async function request(endpoint, { method = "GET", body, auth = true } = {}) {
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Error en la petición");
+  if (!res.ok) throw new Error(data.message || "Request error");
   return data;
 }
 

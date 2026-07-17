@@ -1,12 +1,12 @@
 // ─── Join Course Modal ────────────────────────────────────────────────────────
-// Réplica del diseño de Figma. Dos formas de unirse a un curso:
+// Replica of Figma design. Two ways to join a course:
 //
-//   1. Con CÓDIGO  -> para cursos privados (visibility = "code").
-//                     El tutor comparte el código; sin él, el curso ni aparece.
-//   2. Explorando  -> lista de cursos abiertos (visibility = "open").
+//   1. With CODE  -> for private courses (visibility = "code").
+//                     The tutor shares the code; without it, the course doesn't appear.
+//   2. By browsing  -> list of open courses (visibility = "open").
 //
-// REGLA 1 de negocio: los cursos privados NO se listan aquí. Solo se accede
-// a ellos escribiendo el código correcto.
+// RULE 1 of business: private courses are NOT listed here. Only access them
+// by entering the correct code.
 
 import { LEVEL_COLORS } from "../constants/ui.js";
 import {
@@ -22,13 +22,13 @@ const icon = {
 };
 
 /**
- * Abre el modal para unirse a un curso.
- * @param {function} onJoined - callback que se llama al inscribirse (para refrescar el home)
+ * Opens the modal to join a course.
+ * @param {function} onJoined - callback called when enrolling (to refresh the home)
  */
 export async function openJoinCourseModal(onJoined) {
   document.querySelector(".js-join-overlay")?.remove();
 
-  // Solo cursos ABIERTOS (Regla 1: los privados no se listan)
+  // Only OPEN courses (Rule 1: private ones are not listed)
   let openCourses = await getOpenCourses();
   let enrolledIds = await getEnrolledIds();
 
@@ -36,7 +36,7 @@ export async function openJoinCourseModal(onJoined) {
   overlay.className = "js-join-overlay fixed inset-0 z-[150] flex items-center justify-center p-4";
   overlay.style.cssText = "background: rgba(0,0,0,.5); backdrop-filter: blur(4px); opacity: 0; transition: opacity .2s ease;";
 
-  // Fila de un curso abierto
+  // Row of an open course
   const courseRow = (c) => {
     const joined = enrolledIds.includes(c.id);
     return `
@@ -53,8 +53,8 @@ export async function openJoinCourseModal(onJoined) {
         <button data-join-id="${c.id}" ${joined ? "disabled" : ""}
           class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${joined ? "" : "cursor-pointer"}"
           style="${joined
-            ? "background: var(--secondary); color: var(--primary); border: 1px solid var(--border)"
-            : "background: var(--primary); color: #fff"}">
+        ? "background: var(--secondary); color: var(--primary); border: 1px solid var(--border)"
+        : "background: var(--primary); color: #fff"}">
           ${joined ? `Joined ${icon.check}` : "Join"}
         </button>
       </div>`;
@@ -80,7 +80,7 @@ export async function openJoinCourseModal(onJoined) {
 
       <div class="px-6 py-5 overflow-y-auto" style="max-height: 70vh">
 
-        <!-- Campo de código (cursos privados) -->
+        <!-- Code field (private courses) -->
         <label class="block text-sm font-medium mb-1.5">Course code</label>
         <div class="flex gap-2 mb-2">
           <input class="js-code flex-1 px-4 py-2.5 rounded-xl text-sm font-mono tracking-widest uppercase outline-none"
@@ -93,14 +93,14 @@ export async function openJoinCourseModal(onJoined) {
           Your tutor shares this code for private courses.
         </p>
 
-        <!-- Separador -->
+        <!-- Divider -->
         <div class="flex items-center gap-3 mb-5">
           <div class="flex-1 h-px" style="background: var(--border)"></div>
           <span class="text-xs font-medium" style="color: var(--muted-foreground)">or browse open courses</span>
           <div class="flex-1 h-px" style="background: var(--border)"></div>
         </div>
 
-        <!-- Lista de cursos abiertos -->
+        <!-- List of open courses -->
         <div class="js-open-list space-y-3">${listHtml()}</div>
       </div>
     </div>`;
@@ -122,7 +122,7 @@ export async function openJoinCourseModal(onJoined) {
   const onKey = (e) => { if (e.key === "Escape") close(); };
   document.addEventListener("keydown", onKey);
 
-  // Refresca la lista tras inscribirse (sin cerrar el modal)
+  // Refreshes the list after enrolling (without closing the modal)
   const refreshList = async () => {
     enrolledIds = await getEnrolledIds();
     openCourses = await getOpenCourses();
@@ -131,19 +131,19 @@ export async function openJoinCourseModal(onJoined) {
     onJoined?.();
   };
 
-  // Botones "Join" de la lista
+  // "Join" buttons from the list
   function bindJoinButtons() {
     overlay.querySelectorAll("[data-join-id]").forEach((btn) =>
       btn.addEventListener("click", async () => {
         if (btn.disabled) return;
-        await joinCourse(Number(btn.dataset.joinId));   // curso abierto: sin código
+        await joinCourse(Number(btn.dataset.joinId));   // open course: no code
         await refreshList();
       })
     );
   }
   bindJoinButtons();
 
-  // ── Unirse con CÓDIGO (cursos privados) ──
+  // ── Join with CODE (private courses) ──
   const codeInput = overlay.querySelector(".js-code");
   const codeMsg = overlay.querySelector(".js-code-msg");
 
@@ -152,7 +152,7 @@ export async function openJoinCourseModal(onJoined) {
     codeMsg.style.color = ok ? "var(--primary)" : "#dc2626";
   };
 
-  // Fuerza mayúsculas al escribir
+  // Forces uppercase when typing
   codeInput.addEventListener("input", () => {
     codeInput.value = codeInput.value.toUpperCase();
   });
@@ -175,7 +175,7 @@ export async function openJoinCourseModal(onJoined) {
   overlay.querySelector(".js-join-code").addEventListener("click", submitCode);
   codeInput.addEventListener("keydown", (e) => { if (e.key === "Enter") submitCode(); });
 
-  // Cerrar
+  // Close
   overlay.querySelector(".js-join-close").addEventListener("click", close);
   overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
 

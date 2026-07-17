@@ -1,34 +1,34 @@
 // ─── Course Service ───────────────────────────────────────────────────────────
 //
 // ╔═══════════════════════════════════════════════════════════════════════════╗
-// ║  🚨 REQUISITO BLOQUEANTE PARA EL BACKEND — LEER ANTES DE INTEGRAR        ║
+// ║   BLOCKING REQUIREMENT FOR BACKEND — READ BEFORE INTEGRATING            ║
 // ╠═══════════════════════════════════════════════════════════════════════════╣
 // ║                                                                           ║
-// ║  HOY (mock): el frontend recibe las preguntas CON el campo `correct` y    ║
-// ║  califica localmente. Esto es INSEGURO: cualquier estudiante abre         ║
-// ║  DevTools y ve todas las respuestas correctas.                            ║
+// ║  TODAY (mock): the frontend receives questions WITH the `correct` field  ║
+// ║  and grades locally. This is INSECURE: any student opens DevTools and    ║
+// ║  sees all the correct answers.                                           ║
 // ║                                                                           ║
-// ║  AL INTEGRAR EL BACKEND, es OBLIGATORIO:                                  ║
+// ║  WHEN INTEGRATING THE BACKEND, it's MANDATORY:                           ║
 // ║                                                                           ║
 // ║   1. GET /api/sections/:id/items                                          ║
-// ║      -> NUNCA debe incluir el campo `correct` en las preguntas.           ║
-// ║         El servidor lo elimina antes de responder.                        ║
+// ║      -> MUST NEVER include the `correct` field in questions.             ║
+// ║         The server removes it before responding.                         ║
 // ║                                                                           ║
 // ║   2. POST /api/submissions                                                ║
-// ║      -> Recibe SOLO las respuestas del alumno.                            ║
-// ║         El SERVIDOR compara, califica y devuelve { score, total, points }. ║
+// ║      -> Receives ONLY the student's answers.                             ║
+// ║         The SERVER compares, grades and returns { score, total, points }. ║
 // ║                                                                           ║
-// ║  ⚠️ Esto CAMBIARÁ el frontend: submitQuizz() dejará de calcular el score  ║
-// ║     localmente y pasará a leerlo de la respuesta del backend.             ║
-// ║     Está previsto y aislado en este archivo (ver submitQuizz).            ║
+// ║  ⚠️ This WILL CHANGE the frontend: submitQuizz() will stop calculating   ║
+// ║     the score locally and will read it from the backend response.        ║
+// ║     It's planned and isolated in this file (see submitQuizz).            ║
 // ║                                                                           ║
-// ║  Ver: QUIZZES_Y_REVIEWS.md · Criterio de aceptación de la HU de backend.  ║
+// ║  See: QUIZZES_Y_REVIEWS.md · Acceptance criteria for the backend HU.     ║
 // ╚═══════════════════════════════════════════════════════════════════════════╝
 //
-// Puerta de entrada al contenido de un curso (secciones, items, progreso).
+// Gateway to course content (sections, items, progress).
 //
-// 🔌 INTEGRACIÓN: descomenta `api` y reemplaza el cuerpo de cada función.
-// Las vistas NO cambian.
+// 🔌 INTEGRATION: uncomment `api` and replace the body of each function.
+// The views do NOT change.
 
 // import { api } from "../helpers/api.js";
 import {
@@ -42,14 +42,14 @@ import {
 } from "../mocks/courseContent.mock.js";
 import { getCourseById } from "../data/courses.js";
 
-// ── Estructura del curso ─────────────────────────────────────────────────────
+// ── Course structure ──────────────────────────────────────────────────────────
 
 // GET /api/courses/:id/sections
 export async function getSections(courseId) {
-  // FUTURO: const { data } = await api.get(`/courses/${courseId}/sections`); return data;
+  // FUTURE: const { data } = await api.get(`/courses/${courseId}/sections`); return data;
   const course = await getCourseById(courseId);
 
-  // Si el tutor creó el curso desde el editor, usamos SUS secciones
+  // If the tutor created the course from the editor, we use THEIR sections
   if (course?.sections?.length) {
     return course.sections.map((s, i) => ({
       id: s.id,
@@ -63,10 +63,10 @@ export async function getSections(courseId) {
 
 // GET /api/sections/:id/items  -> welcome, content, review, quizz
 export async function getSectionItems(courseId, sectionId) {
-  // FUTURO: const { data } = await api.get(`/sections/${sectionId}/items`); return data;
+  // FUTURE: const { data } = await api.get(`/sections/${sectionId}/items`); return data;
   const course = await getCourseById(courseId);
 
-  // Curso creado por el tutor -> leemos lo que él guardó
+  // Course created by tutor -> we read what they saved
   const custom = course?.items?.[sectionId];
   if (custom) {
     return {
@@ -77,7 +77,7 @@ export async function getSectionItems(courseId, sectionId) {
     };
   }
 
-  // Curso de ejemplo -> mocks
+  // Example course -> mocks
   return {
     welcome: MOCK_WELCOME[sectionId] || { message: "", videoUrl: "" },
     contents: MOCK_COURSE_CONTENTS[sectionId] || [],
@@ -88,7 +88,7 @@ export async function getSectionItems(courseId, sectionId) {
 
 // GET /api/courses/:id/final-assessment
 export async function getFinalAssessment(courseId) {
-  // FUTURO: const { data } = await api.get(`/courses/${courseId}/final`); return data;
+  // FUTURE: const { data } = await api.get(`/courses/${courseId}/final`); return data;
   const course = await getCourseById(courseId);
   return course?.finalAssessment?.questions?.length
     ? course.finalAssessment
@@ -97,36 +97,36 @@ export async function getFinalAssessment(courseId) {
 
 // GET /api/courses/:id/leaderboard
 export async function getLeaderboard(courseId) {
-  // FUTURO: const { data } = await api.get(`/courses/${courseId}/leaderboard`); return data;
+  // FUTURE: const { data } = await api.get(`/courses/${courseId}/leaderboard`); return data;
   return [...MOCK_LEADERBOARD].sort((a, b) => b.points - a.points);
 }
 
-// ── Progreso del estudiante ──────────────────────────────────────────────────
-// Hoy en localStorage; mañana serán las tablas `submissions` del backend.
-// FUTURO: GET/POST /api/submissions
+// ── Student progress ──────────────────────────────────────────────────────────
+// Today in localStorage; tomorrow they'll be the backend `submissions` tables.
+// FUTURE: GET/POST /api/submissions
 
 const key = (courseId) => `progress:${courseId}`;
 
 // { quizzes: { [sectionId]: { score, points } }, reviews: { [sectionId]: true }, final: {...} }
 export async function getProgress(courseId) {
-  // FUTURO: const { data } = await api.get(`/courses/${courseId}/progress`); return data;
+  // FUTURE: const { data } = await api.get(`/courses/${courseId}/progress`); return data;
   const saved = localStorage.getItem(key(courseId));
   return saved ? JSON.parse(saved) : { quizzes: {}, reviews: {}, final: null };
 }
 
-// POST /api/submissions  -> guarda el resultado de un quizz
-// ⚠️ La CALIFICACIÓN vive aquí, NO en la vista.
+// POST /api/submissions  -> saves the result of a quiz
+// ⚠️ The GRADING lives here, NOT in the view.
 //
-// Recibe las RESPUESTAS del alumno (no el score ya calculado). Hoy corrige
-// localmente contra el mock; mañana el SERVIDOR corrige y devuelve el score.
-// La vista solo envía respuestas y muestra el resultado: no sabe corregir.
+// Receives the student's ANSWERS (not the already calculated score). Today corrects
+// locally against the mock; tomorrow the SERVER corrects and returns the score.
+// The view only sends answers and displays the result: it doesn't know how to grade.
 //
-// FUTURO (backend obligatorio):
+// FUTURE (backend mandatory):
 //   const { data } = await api.post("/submissions", { item_id, answers });
 //   return { progress: await getProgress(courseId), result: data };
-//   ...y este archivo deja de ver `q.correct` (el backend nunca lo envía).
+//   ...and this file stops seeing `q.correct` (the backend never sends it).
 export async function submitQuizz(courseId, sectionId, { quiz, answers }) {
-  // ── Corrección (esto se MUEVE al servidor al integrar) ──
+  // ── Grading (this MOVES to the server when integrating) ──
   const correct = quiz.questions.filter((q) => answers[q.id] === q.correct).length;
   const total = quiz.questions.length;
   const points = Math.round((correct / total) * (quiz.points || 50));
@@ -135,13 +135,13 @@ export async function submitQuizz(courseId, sectionId, { quiz, answers }) {
   p.quizzes[sectionId] = { score: correct, total, points };
   localStorage.setItem(key(courseId), JSON.stringify(p));
 
-  // Devuelve progreso + resultado (misma forma que devolverá la API)
+  // Returns progress + result (same format the API will return)
   return { progress: p, result: { correct, total, points } };
 }
 
-// POST /api/submissions  -> guarda el resultado de una review
-// ⚠️ Las reviews NO otorgan puntos al leaderboard (solo los quizzes).
-// Son actividades de práctica: dan feedback, pero no puntúan ni califican.
+// POST /api/submissions  -> saves the result of a review
+// ⚠️ Reviews do NOT award leaderboard points (only quizzes do).
+// They are practice activities: they provide feedback, but don't score or grade.
 export async function submitReview(courseId, sectionId, { correct }) {
   const p = await getProgress(courseId);
   p.reviews[sectionId] = { correct, completed: true };

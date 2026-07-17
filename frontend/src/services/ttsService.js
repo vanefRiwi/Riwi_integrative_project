@@ -3,24 +3,24 @@ import { marked } from "marked";
 // ─────────────────────────────────────────────────────────────
 // LumiVoice · Text-To-Speech Service
 //
-// Toda la lógica de voz vive aquí. La UI (voiceAssistantBar.js)
-// SOLO llama a estas funciones exportadas: nunca toca speechSynthesis
-// directamente. Ese es el mismo patrón de service que usa el resto del
-// proyecto (courseService.js, contentService.js).
+// All voice logic lives here. The UI (voiceAssistantBar.js) ONLY calls
+// these exported functions: it never touches speechSynthesis directly.
+// This is the same service pattern used by the rest of the project
+// (courseService.js, contentService.js).
 //
-//   Frontend (voiceAssistantBar) → ttsService → SpeechSynthesis (navegador)
-//                                            └→ agent/ (solo el summarize)
+//   Frontend (voiceAssistantBar) → ttsService → SpeechSynthesis (browser)
+//                                             └→ agent/ (only summarize)
 //
-// El TTS corre 100% en el navegador con la API nativa SpeechSynthesis:
-// sin backend, sin API key, sin costo. Solo `summarizeText` toca el agent.
+// TTS runs 100% in the browser with the native SpeechSynthesis API:
+// no backend, no API key, no cost. Only `summarizeText` touches the agent.
 // ─────────────────────────────────────────────────────────────
 
 let utterance = null;
 let currentRate = 1;
 let isSpeaking = false;
 
-// Callbacks que la UI puede registrar para actualizar sus botones
-// (play/pause) sin tener que sondear el estado.
+// Callbacks that the UI can register to update its buttons
+// (play/pause) without having to poll the state.
 let onStateChange = null;
 
 function emitState(state) {
@@ -29,17 +29,17 @@ function emitState(state) {
 }
 
 /**
- * Permite a la UI escuchar cambios de estado del reproductor.
+ * Allows the UI to listen for player state changes.
  * @param {(state: "playing"|"paused"|"stopped") => void} cb
  */
 export function setOnStateChange(cb) {
   onStateChange = cb;
 }
 
-// ─── Reproducción básica ─────────────────────────────────────
+// ─── Basic playback ────────────────────────────────────────
 
 /**
- * Lee texto plano en voz alta. Cancela cualquier lectura anterior.
+ * Reads plain text aloud. Cancels any previous reading.
  * @param {string} text
  */
 export function speakText(text = "") {
@@ -52,13 +52,13 @@ export function speakText(text = "") {
   utterance.lang = "en-US";
 
   utterance.onstart = () => { isSpeaking = true; emitState("playing"); };
-  utterance.onend   = () => { isSpeaking = false; emitState("stopped"); };
+  utterance.onend = () => { isSpeaking = false; emitState("stopped"); };
   utterance.onerror = () => { isSpeaking = false; emitState("stopped"); };
 
   speechSynthesis.speak(utterance);
 }
 
-/** Pausa la lectura actual. */
+/** Pauses the current reading. */
 export function pauseSpeech() {
   if (speechSynthesis.speaking && !speechSynthesis.paused) {
     speechSynthesis.pause();
@@ -66,7 +66,7 @@ export function pauseSpeech() {
   }
 }
 
-/** Reanuda una lectura pausada. */
+/** Resumes a paused reading. */
 export function resumeSpeech() {
   if (speechSynthesis.paused) {
     speechSynthesis.resume();
@@ -74,7 +74,7 @@ export function resumeSpeech() {
   }
 }
 
-/** Detiene por completo cualquier lectura. */
+/** Stops any reading completely. */
 export function stopSpeech() {
   speechSynthesis.cancel();
   isSpeaking = false;
@@ -82,30 +82,30 @@ export function stopSpeech() {
 }
 
 /**
- * Cambia la velocidad de lectura. Soportadas: 0.75, 1, 1.5.
- * Si ya se está leyendo algo, reinicia con la nueva velocidad para
- * que el cambio se aplique al instante.
+ * Changes the reading speed. Supported: 0.75, 1, 1.5.
+ * If something is already being read, it restarts with the new speed so
+ * the change is applied instantly.
  * @param {number} rate
  */
 export function setSpeechRate(rate = 1) {
   currentRate = rate;
 }
 
-/** true si hay una lectura en curso (aunque esté pausada). */
+/** true if there's a reading in progress (even if paused). */
 export function isSpeechPlaying() {
   return speechSynthesis.speaking;
 }
 
-/** true si la lectura está pausada. */
+/** true if the reading is paused. */
 export function isSpeechPaused() {
   return speechSynthesis.paused;
 }
 
-// ─── Markdown → texto legible ────────────────────────────────
+// ─── Markdown → readable text ─────────────────────────────────
 
 /**
- * Convierte Markdown en texto plano para que el asistente lo lea
- * de forma natural (sin ##, **, guiones, etc.).
+ * Converts Markdown to plain text so the assistant can read it
+ * naturally (without ##, **, hyphens, etc.).
  * @param {string} markdown
  * @returns {string}
  */
@@ -116,39 +116,39 @@ export function extractTextFromMarkdown(markdown = "") {
   return (temp.textContent || "").replace(/\s+/g, " ").trim();
 }
 
-/** Lee contenido Markdown en voz alta. */
+/** Reads Markdown content aloud. */
 export function speakMarkdown(markdown = "") {
   speakText(extractTextFromMarkdown(markdown));
 }
 
-// ─── Extracción del contenido de la pantalla ─────────────────
+// ─── Screen content extraction ────────────────────────────────
 //
-// La barra le pasa a estas funciones lo que hay en la sección actual.
-// Solo se lee lo que tiene sentido leer:
-//   · contents de tipo "readme" (Markdown)  ← el material de la lección
-//   · el mensaje de bienvenida (welcome)
-//   · las preguntas del quizz (texto + opciones)
-// Los videos de YouTube y los embeds de Canva NO se leen (no son texto).
+// The bar passes to these functions what's in the current section.
+// Only things that make sense to read are read:
+//   · contents of type "readme" (Markdown)  ← the lesson material
+//   · the welcome message (welcome)
+//   · quiz questions (text + options)
+// YouTube videos and Canva embeds are NOT read (they're not text).
 
 /**
- * Junta todo el texto legible de una sección para leerla "de corrido".
- * Recibe el objeto `items` que ya carga courseView (welcome/contents/quizz).
+ * Gathers all readable text from a section to read it "straight through".
+ * Receives the `items` object that courseView already loads (welcome/contents/quizz).
  *
  * @param {object} section  { welcome, contents, review, quizz }
  * @param {object} [opts]
- * @param {"welcome"|"content"|"quizz"} [opts.only]  leer solo una parte
- * @returns {string} texto plano listo para speakText()
+ * @param {"welcome"|"content"|"quizz"} [opts.only]  read only one part
+ * @returns {string} plain text ready for speakText()
  */
 export function extractSectionText(section = {}, { only } = {}) {
   if (!section) return "";
   const parts = [];
 
-  // Bienvenida
+  // Welcome
   if ((!only || only === "welcome") && section.welcome?.message) {
     parts.push(section.welcome.message);
   }
 
-  // Contenido: SOLO los bloques readme (Markdown). Se ignoran youtube/canva.
+  // Content: ONLY readme blocks (Markdown). YouTube/Canva are ignored.
   if (!only || only === "content") {
     const readmes = (section.contents || [])
       .filter((c) => c.tipo === "readme")
@@ -160,7 +160,7 @@ export function extractSectionText(section = {}, { only } = {}) {
     parts.push(...readmes);
   }
 
-  // Quizz: enunciado + opciones de cada pregunta
+  // Quiz: statement + options for each question
   if (only === "quizz" && section.quizz?.questions?.length) {
     parts.push(extractQuizText(section.quizz));
   }
@@ -169,8 +169,8 @@ export function extractSectionText(section = {}, { only } = {}) {
 }
 
 /**
- * Convierte un quizz en texto leíble: cada pregunta con sus opciones
- * numeradas ("Option 1: ..."). Nunca lee cuál es la correcta.
+ * Converts a quiz to readable text: each question with its numbered options
+ * ("Option 1: ..."). Never reads which one is correct.
  * @param {object} quiz  { questions: [{ text, options }] }
  * @returns {string}
  */
@@ -184,14 +184,14 @@ export function extractQuizText(quiz = {}) {
   }).join(". ");
 }
 
-// ─── AI Summarization (vía agent/) ───────────────────────────
+// ─── AI Summarization (via agent/) ───────────────────────────
 
 /**
- * Pide un resumen corto al agent (que habla con OpenAI/Gemini y guarda
- * la API key fuera del frontend). Hoy es un placeholder que devuelve el
- * texto tal cual; cuando el agent esté listo, se reemplaza el cuerpo.
+ * Requests a short summary from the agent (which talks to OpenAI/Gemini and
+ * keeps the API key outside the frontend). Today it's a placeholder that
+ * returns the text as-is; when the agent is ready, replace the body.
  *
- *   FUTURO:
+ *   FUTURE:
  *   const res = await fetch("/agent/summarize", {
  *     method: "POST",
  *     headers: { "Content-Type": "application/json" },
@@ -204,14 +204,14 @@ export function extractQuizText(quiz = {}) {
  * @returns {Promise<string>}
  */
 export async function summarizeText(markdown = "") {
-  // TODO: reemplazar por la petición real al agent.
+  // TODO: replace with the real request to the agent.
   console.log("[LumiVoice] AI summary not implemented yet — reading original.");
   return extractTextFromMarkdown(markdown);
 }
 
 /**
- * Genera un resumen con IA y lo lee. Si la IA falla, lee el texto
- * original en su lugar (fallback silencioso: nunca se rompe).
+ * Generates an AI summary and reads it. If AI fails, reads the original
+ * text instead (silent fallback: never breaks).
  * @param {string} markdown
  */
 export async function summarizeAndSpeak(markdown = "") {
@@ -224,8 +224,8 @@ export async function summarizeAndSpeak(markdown = "") {
   }
 }
 
-// ─── Compatibilidad ──────────────────────────────────────────
-// Alias simple usado por el navbar para una prueba rápida.
+// ─── Compatibility ─────────────────────────────────────────
+// Simple alias used by the navbar for a quick test.
 export function speak(text = "") {
   speakText(text);
 }

@@ -1,37 +1,37 @@
 // ─── Content Renderer ─────────────────────────────────────────────────────────
-// Decide AUTOMÁTICAMENTE qué componente pintar según content.tipo.
+// AUTOMATICALLY decides which component to render based on content.tipo.
 //
 // ┌─────────────────────────────────────────────────────────────────────────┐
-// │  CONTRATO DE DATOS (idéntico al de la API)                              │
+// │  DATA CONTRACT (identical to the API)                                   │
 // │                                                                         │
 // │  { id, titulo, tipo, datos, orden }                                     │
 // │                                                                         │
-// │  El campo `tipo` indica CÓMO interpretar el campo `datos`:              │
+// │  The `tipo` field indicates HOW to interpret the `datos` field:         │
 // │                                                                         │
-// │   tipo = "readme"   ->  datos = texto en MARKDOWN                       │
-// │                         ej: "## Título\n\n- **Punto** importante"       │
+// │   tipo = "readme"   ->  datos = text in MARKDOWN                        │
+// │                         ex: "## Title\n\n- **Key** point"               │
 // │                                                                         │
-// │   tipo = "youtube"  ->  datos = ID o URL del video                      │
-// │                         ej: "dQw4w9WgXcQ"                               │
-// │                         ej: "https://youtube.com/watch?v=dQw4w9WgXcQ"   │
+// │   tipo = "youtube"  ->  datos = video ID or URL                         │
+// │                         ex: "dQw4w9WgXcQ"                               │
+// │                         ex: "https://youtube.com/watch?v=dQw4w9WgXcQ"   │
 // │                                                                         │
-// │   tipo = "canva"    ->  datos = URL de EMBED del diseño                 │
-// │                         ej: "https://canva.com/design/XXX/view?embed"   │
+// │   tipo = "canva"    ->  datos = EMBED URL of the design                 │
+// │                         ex: "https://canva.com/design/XXX/view?embed"   │
 // │                                                                         │
-// │  Siempre es UN SOLO campo `datos`. Nunca `url` ni `md` por separado.    │
+// │  Always a SINGLE `datos` field. Never separate `url` or `md`.           │
 // └─────────────────────────────────────────────────────────────────────────┘
 //
-// Para soportar un tipo nuevo, basta con agregarlo al mapa RENDERERS.
-// Ninguna vista cambia. (Principio abierto/cerrado.)
+// To support a new type, just add it to the RENDERERS map.
+// No view changes needed. (Open/closed principle.)
 
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { CONTENT_TYPES, youtubeId } from "../services/contentService.js";
 
-// Configuración de marked: saltos de línea al estilo GitHub
+// Configuration for marked: GitHub-style line breaks
 marked.setOptions({ breaks: true, gfm: true });
 
-// Envoltorio común de todas las tarjetas de contenido
+// Common wrapper for all content cards
 function card(titulo, inner, { padded = true } = {}) {
   return `
     <div class="rounded-xl overflow-hidden" style="background: var(--card); border: 1px solid var(--border)">
@@ -40,10 +40,10 @@ function card(titulo, inner, { padded = true } = {}) {
     </div>`;
 }
 
-// ── tipo: "readme" -> datos = Markdown ───────────────────────────────────────
+// ── type: "readme" -> datos = Markdown ──────────────────────────────────────
 function renderReadme(content) {
-  // marked convierte Markdown -> HTML.
-  // DOMPurify limpia el HTML para evitar XSS (un tutor podría inyectar <script>).
+  // marked converts Markdown -> HTML.
+  // DOMPurify sanitizes HTML to prevent XSS (a tutor could inject <script>).
   const dirty = marked.parse(content.datos || "");
   const clean = DOMPurify.sanitize(dirty);
 
@@ -53,9 +53,9 @@ function renderReadme(content) {
   );
 }
 
-// ── tipo: "youtube" -> datos = ID o URL del video ────────────────────────────
+// ── type: "youtube" -> datos = video ID or URL ────────────────────────────────
 function renderYoutube(content) {
-  const id = youtubeId(content.datos);   // normaliza cualquier formato a un ID
+  const id = youtubeId(content.datos);   // normalizes any format to an ID
 
   return card(
     content.titulo,
@@ -70,7 +70,7 @@ function renderYoutube(content) {
   );
 }
 
-// ── tipo: "canva" -> datos = URL de embed ────────────────────────────────────
+// ── type: "canva" -> datos = embed URL ──────────────────────────────────────
 function renderCanva(content) {
   return card(
     content.titulo,
@@ -84,7 +84,7 @@ function renderCanva(content) {
   );
 }
 
-// ── Fallback: tipo desconocido (no rompemos la vista) ────────────────────────
+// ── Fallback: unknown type (doesn't break the view) ──────────────────────────
 function renderUnknown(content) {
   return `
     <div class="rounded-xl p-4 text-sm" style="background: var(--muted); color: var(--muted-foreground)">
@@ -92,20 +92,20 @@ function renderUnknown(content) {
     </div>`;
 }
 
-// ── Mapa: tipo -> renderer ───────────────────────────────────────────────────
+// ── Map: type -> renderer ────────────────────────────────────────────────────
 const RENDERERS = {
   [CONTENT_TYPES.README]: renderReadme,
   [CONTENT_TYPES.YOUTUBE]: renderYoutube,
   [CONTENT_TYPES.CANVA]: renderCanva,
 };
 
-// Renderiza UN contenido según su tipo
+// Renders a SINGLE piece of content based on its type
 export function renderContent(content) {
   const renderer = RENDERERS[content.tipo] || renderUnknown;
   return renderer(content);
 }
 
-// Renderiza una LISTA completa, respetando el campo `orden`
+// Renders a COMPLETE list, respecting the `orden` field
 export function renderContentList(contents = []) {
   if (!contents.length) {
     return `<p class="text-sm py-8 text-center" style="color: var(--muted-foreground)">No content yet.</p>`;

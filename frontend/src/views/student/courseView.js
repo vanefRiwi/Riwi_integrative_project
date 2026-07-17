@@ -1,12 +1,12 @@
 // ─── Course View (Student) ────────────────────────────────────────────────────
-// Sidebar de secciones con LOCK PROGRESIVO + pestañas Content/Leaderboard/Grades.
+// Section sidebar with PROGRESSIVE LOCK + Content/Leaderboard/Grades tabs.
 //
-// Reglas de desbloqueo:
-//   - El Quizz de una sección desbloquea la SIGUIENTE sección.
-//   - Completar todos los quizzes desbloquea el Final Assessment.
+// Unlock rules:
+//   - A section's Quiz unlocks the NEXT section.
+//   - Completing all quizzes unlocks the Final Assessment.
 //
-// Datos desde services/courseService.js (hoy mock, mañana la API real).
-// Sirve también como "Preview as student" para el tutor (?preview=1).
+// Data from services/courseService.js (today mock, tomorrow the real API).
+// Also serves as "Preview as student" for the tutor (?preview=1).
 
 import { navbar, initNavbar } from "../../components/navbar.js";
 import { closeBar } from "../../components/voiceAssistantBar.js";
@@ -37,26 +37,26 @@ const icon = {
   eye: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>`,
 };
 
-// ─── Estado ──────────────────────────────────────────────────────────────────
+// ─── State ─────────────────────────────────────────────────────────────────
 let courseId = null, course = null, sections = [], items = null;
 let progress = { quizzes: {}, reviews: {}, final: null };
 let finalAssessment = null, leaderboard = [];
 let selSection = null, selItem = "welcome", selTab = "content";
 let previewMode = false;
-let previewFrom = null;   // "editor" | null -> a dónde volver al salir del preview
+let previewFrom = null;   // "editor" | null -> where to return when exiting preview
 let answers = {}, feedback = null;
 
 function emptyBox(msg) {
   return `<div class="rounded-xl p-8 text-center text-sm" style="background: var(--card); border: 1px solid var(--border); color: var(--muted-foreground)">${msg}</div>`;
 }
 
-// ─── Sidebar con lock progresivo ─────────────────────────────────────────────
+// ─── Sidebar with progressive lock ─────────────────────────────────────────────
 function sidebar() {
   const ITEMS = [
     { key: "welcome", label: "Welcome", ic: icon.play },
     { key: "content", label: "Content", ic: icon.video },
-    { key: "review",  label: "Review",  ic: icon.clip },
-    { key: "quizz",   label: "Quizz",   ic: icon.quiz },
+    { key: "review", label: "Review", ic: icon.clip },
+    { key: "quizz", label: "Quizz", ic: icon.quiz },
   ];
 
   const list = sections.map((sec) => {
@@ -135,7 +135,7 @@ function welcomePanel() {
     </div>`;
 }
 
-// ─── Panel: Content (renderer automático por tipo) ───────────────────────────
+// ─── Panel: Content (automatic renderer by type) ──────────────────────────────
 function contentPanel() {
   const sec = sections.find((s) => s.id === selSection);
   return `
@@ -145,12 +145,12 @@ function contentPanel() {
     </div>`;
 }
 
-// ─── Panel: Review (los 3 formatos) ──────────────────────────────────────────
+// ─── Panel: Review (the 3 formats) ──────────────────────────────────────────
 function reviewPanel() {
   const rev = items?.review;
   if (!rev) return emptyBox("No review activity in this section.");
 
-  // ⚠️ Las reviews son PRÁCTICA: se pueden repetir siempre (no son evaluativas)
+  // Reviews are PRACTICE: can be repeated anytime (not evaluative)
   let body = "";
 
   if (rev.format === "fill-blanks") {
@@ -198,7 +198,7 @@ function reviewPanel() {
               style="background: var(--card); border: 1.5px solid ${border}">
               <option value="">#</option>
               ${Array.from({ length: total }, (_, n) => n + 1)
-                .map((n) => `<option ${Number(answers[idx]) === n ? "selected" : ""}>${n}</option>`).join("")}
+            .map((n) => `<option ${Number(answers[idx]) === n ? "selected" : ""}>${n}</option>`).join("")}
             </select>
             <span class="flex-1 text-sm">${s.text}</span>
           </div>`;
@@ -221,7 +221,7 @@ function reviewPanel() {
     </div>`;
 }
 
-// ─── Panel: Quizz / Final Assessment ─────────────────────────────────────────
+// ─── Panel: Quiz / Final Assessment ─────────────────────────────────────────
 function quizzPanel(isFinal = false) {
   const quiz = isFinal ? finalAssessment : items?.quizz;
   if (!quiz?.questions?.length) return emptyBox("No questions in this quiz.");
@@ -233,12 +233,12 @@ function quizzPanel(isFinal = false) {
       const picked = answers[q.id] === oi;
       let border = "var(--border)", bg = "var(--muted)";
       if (feedback) {
-        // Marca visual tras enviar. `q.correct` solo se usa para PINTAR, nunca
-        // para calificar (eso lo hace el service / el backend).
+        // Visual marking after submit. `q.correct` is only used for PAINTING, never
+        // for grading (the service / backend does that).
         //
-        // FUTURO: el backend NO enviará `correct`. Entonces la respuesta de
-        // POST /api/submissions debe incluir `correctAnswers: { [qId]: index }`
-        // y aquí se leerá de ahí: const right = feedback.correctAnswers?.[q.id];
+        // FUTURE: the backend will NOT send `correct`. Then the POST /api/submissions
+        // response should include `correctAnswers: { [qId]: index }` and it will be
+        // read from there: const right = feedback.correctAnswers?.[q.id];
         const right = feedback.correctAnswers?.[q.id] ?? q.correct;
 
         if (oi === right) { border = "var(--primary)"; bg = "var(--secondary)"; }
@@ -278,8 +278,8 @@ function quizzPanel(isFinal = false) {
       ${result}
       ${questions}
       ${done && !feedback
-        ? `<p class="text-sm text-center font-medium" style="color: var(--primary)">\u2713 Already completed (${done.score}/${done.total})</p>`
-        : `<button class="js-submit-quizz w-full py-3 rounded-xl text-sm font-semibold transition-all" data-final="${isFinal}"
+      ? `<p class="text-sm text-center font-medium" style="color: var(--primary)">\u2713 Already completed (${done.score}/${done.total})</p>`
+      : `<button class="js-submit-quizz w-full py-3 rounded-xl text-sm font-semibold transition-all" data-final="${isFinal}"
              style="background: ${answered ? "var(--primary)" : "var(--secondary)"};
                     color: ${answered ? "#fff" : "var(--muted-foreground)"};
                     cursor: ${answered ? "pointer" : "not-allowed"}" ${answered ? "" : "disabled"}>Submit Answers</button>`}
@@ -326,13 +326,13 @@ function leaderboardPanel() {
     </div>`;
 }
 
-// ─── Panel: Grades (réplica del diseño de Figma) ────────────────────────────
-// Usa calculateFinalGrade(): la MISMA fórmula que ve el tutor en su Dashboard.
+// ─── Panel: Grades (replica of Figma design) ───────────────────────────────────
+// Uses calculateFinalGrade(): the SAME formula the tutor sees in their Dashboard.
 function gradesPanel() {
   const { grade, breakdown, completed, totalItems, points, maxPoints } =
     calculateFinalGrade(sections, progress);
 
-  // Tarjeta de resumen (ícono + valor + label + subtexto)
+  // Summary card (icon + value + label + subtext)
   const summaryCard = (ic, value, label, sub) => `
     <div class="rounded-xl p-5 flex items-start gap-3"
          style="background: var(--card); border: 1px solid var(--border)">
@@ -345,7 +345,7 @@ function gradesPanel() {
       </div>
     </div>`;
 
-  // Lista de items calificados
+  // List of graded items
   const rows = breakdown.map((b) => {
     let right;
 
@@ -396,7 +396,7 @@ function gradesPanel() {
     </div>`;
 }
 
-// ─── Vista completa ──────────────────────────────────────────────────────────
+// ─── Complete view ──────────────────────────────────────────────────────────
 export function courseView() {
   if (!course) return `<div class="p-8 text-sm" style="color: var(--muted-foreground)">Loading...</div>`;
 
@@ -417,7 +417,7 @@ export function courseView() {
              box-shadow: ${active ? "0 1px 2px rgba(0,0,0,.06)" : "none"}">${label}</button>`;
   };
 
-  // Banner amarillo: el tutor está viendo como estudiante
+  // Yellow banner: tutor is viewing as a student
   const previewBar = previewMode ? `
     <div class="flex items-center justify-between px-4 sm:px-6 py-2 text-sm"
          style="background:#fef3c7; border-bottom:1px solid #fde68a; color:#92400e">
@@ -455,8 +455,8 @@ export function courseView() {
     </div>`;
 }
 
-// Publica la sección actual para el asistente de voz (LumiVoice).
-// La barra (voiceAssistantBar.js) lee de aquí qué leer en voz alta.
+// Publishes the current section for the voice assistant (LumiVoice).
+// The bar (voiceAssistantBar.js) reads from here what to read aloud.
 function syncVoiceContext() {
   const sec = sections.find((s) => s.id === selSection);
   window.__lumivoice = {
@@ -471,17 +471,17 @@ function rerender() {
   attachEvents(app);
 }
 
-// ─── Eventos ─────────────────────────────────────────────────────────────────
+// ─── Events ─────────────────────────────────────────────────────────────────
 function attachEvents(root) {
   initNavbar(root);
 
-  // A dónde volver: si el tutor entró desde el editor, regresa al editor
-  // con su curso cargado; si entró desde el home, regresa al home.
+  // Where to return: if tutor entered from the editor, return to editor with their course
+  // loaded; if from home, return to home.
   const exitPreview = () =>
     navigate(previewFrom === "editor" ? `/tutor/editor?id=${courseId}` : "/tutor");
 
   root.querySelector(".js-back")?.addEventListener("click", () => {
-    closeBar();                 // detiene la voz y cierra la barra LumiVoice
+    closeBar();                 // stops the voice and closes the LumiVoice bar
     window.__lumivoice = null;
     if (!previewMode) return navigate("/student");
     exitPreview();
@@ -511,7 +511,7 @@ function attachEvents(root) {
     })
   );
 
-  // Review: capturar respuestas
+  // Review: capture answers
   root.querySelectorAll("[data-blank]").forEach((i) =>
     i.addEventListener("input", () => { answers[i.dataset.blank] = i.value; })
   );
@@ -522,9 +522,9 @@ function attachEvents(root) {
     s.addEventListener("change", () => { answers[s.dataset.step] = s.value; })
   );
 
-  // Review: comprobar respuestas
+  // Review: check answers
   root.querySelector(".js-check-review")?.addEventListener("click", async () => {
-    // Si ya había feedback, este clic es "Try again": limpia y vuelve a empezar
+    // If there was already feedback, this click is "Try again": clears and starts over
     if (feedback) {
       feedback = null;
       answers = {};
@@ -545,12 +545,12 @@ function attachEvents(root) {
     const allCorrect = correct === results.length && results.length > 0;
     feedback = { results, correct, total: results.length, allCorrect };
 
-    // Las reviews NO dan puntos al leaderboard: solo se marcan como completadas
+    // Reviews do NOT award leaderboard points: only marked as completed
     if (allCorrect) progress = await submitReview(courseId, selSection, { correct });
     rerender();
   });
 
-  // Quizz: elegir opción
+  // Quiz: choose option
   root.querySelectorAll("[data-q]").forEach((radio) =>
     radio.addEventListener("change", () => {
       answers[radio.dataset.q] = Number(radio.dataset.opt);
@@ -558,14 +558,14 @@ function attachEvents(root) {
     })
   );
 
-  // Quizz: enviar
+  // Quiz: submit
   root.querySelector(".js-submit-quizz")?.addEventListener("click", async (e) => {
     const isFinal = e.currentTarget.dataset.final === "true";
     const quiz = isFinal ? finalAssessment : items.quizz;
 
-    // ⚠️ La vista NO califica: solo envía las respuestas al service.
-    // Hoy el service corrige localmente; mañana lo hará el SERVIDOR y esta
-    // vista no cambiará (ya lee el resultado de la respuesta).
+    // The view does NOT grade: only sends the answers to the service. Today the
+    // service corrects locally; tomorrow the SERVER will do it and this view
+    // won't change (it already reads the result from the response).
     const { progress: newProgress, result } = isFinal
       ? await submitFinal(courseId, { quiz, answers })
       : await submitQuizz(courseId, selSection, { quiz, answers });
@@ -582,18 +582,18 @@ export async function initCourseView() {
   const root = document.getElementById("app");
   const params = new URLSearchParams(location.search);
 
-  // Reset del estado del módulo: sin esto se arrastran datos de la visita anterior
+  // Module state reset: without this, data from the previous visit is carried over
   course = null; sections = []; items = null; finalAssessment = null; leaderboard = [];
   progress = { quizzes: {}, reviews: {}, final: null };
 
   courseId = Number(params.get("id"));
-  previewMode = params.get("preview") === "1";   // el tutor mira como estudiante
-  previewFrom = params.get("from");              // "editor" si vino del editor
+  previewMode = params.get("preview") === "1";   // tutor watches as a student
+  previewFrom = params.get("from");              // "editor" if came from editor
 
   course = await getCourseById(courseId);
 
-  // Si el curso no existe, volver a donde corresponde SEGÚN EL ROL.
-  // (Antes mandaba siempre a /student, y el guard rebotaba al tutor al login.)
+  // If the course doesn't exist, return to the appropriate place BASED ON ROLE.
+  // (Before it always sent to /student, and the guard bounced tutor to login.)
   if (!course) {
     const role = getSession()?.role;
     return navigate(role === "tutor" ? "/tutor" : "/student");

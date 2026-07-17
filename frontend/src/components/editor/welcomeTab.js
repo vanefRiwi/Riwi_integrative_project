@@ -1,5 +1,5 @@
-// ─── Pestaña: Welcome ─────────────────────────────────────────────────────────
-// Mensaje de bienvenida + video intro opcional de la sección seleccionada.
+// ─── Tab: Welcome ───────────────────────────────────────────────────────────────
+// Welcome message + optional intro video for the selected section.
 
 export function welcomeTab(item = {}) {
   return `
