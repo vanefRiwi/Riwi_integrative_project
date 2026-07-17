@@ -1,32 +1,19 @@
 import { Router } from "express";
-import { 
-  getCourses, 
-  createCourse, 
-  updateCourse 
-} from "./course.controllers.js";
-
-// Middleware guardians
+import { getCourses, getMyCourses, createCourse, updateCourse } from "./course.controllers.js";
 import { verifyJWT, authorizeRoles } from "../../middlewares/auth.middleware.js";
 
 const router = Router();
 
-/**
- * 1. General course catalog
- * Requirement: Any authenticated user (student or tutor) can consult it.
- */
+// 🎓 Catálogo general (Para estudiantes y tutores)
 router.get("/", verifyJWT, getCourses);
 
-/**
- * 2. Course creation (Blocker #2)
- * Requirement: Exclusive for users with rol "tutor".
- * If a user tests it, the middleware bounces a 403 automatically.
- */
+// 👨‍🏫 Panel del Tutor: Obtiene solo los cursos del tutor autenticado
+router.get("/mine", verifyJWT, authorizeRoles("tutor"), getMyCourses);
+
+// 📝 Crear curso (Exclusivo Tutor - Blocker #2)
 router.post("/", verifyJWT, authorizeRoles("tutor"), createCourse);
 
-/**
- * 3. Course edition/modify (Blocker #2).
- * Requirement: Exclusive for tutors.
- */
+// 🔄 Editar curso (Exclusivo Tutor dueño - Blocker #2)
 router.put("/:id", verifyJWT, authorizeRoles("tutor"), updateCourse);
 
 export default router;

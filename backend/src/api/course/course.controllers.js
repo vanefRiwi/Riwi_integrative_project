@@ -1,65 +1,58 @@
+import { courseServices } from "./course.services.js";
+
 /**
- * 1. GET /api/courses — Get all the courses (Task for Manuel)
- * Handled under Blocker #2: Filters visible open listings
+ * 1. GET /api/courses — Catálogo general con filtros del Blocker #2
  */
 export const getCourses = async (req, res, next) => {
   try {
-    // TODO: Manuel will implement courseRepository.findAll derived logic here
-    return res.status(200).json([]); // Returns empty array to match the contract
+    // req.user viene inyectado por tu Middleware verifyJWT 🎉
+    const courses = await courseServices.getCoursesForUser(req.user);
+    return res.status(200).json(courses);
   } catch (error) {
     next(error);
   }
 };
 
 /**
- * 2. POST /api/courses — Create a course (Task for Manuel)
- * Blocker #2 & #3: Exclusive for 'tutor' role. Generates course_code if private.
+ * 2. GET /api/courses/mine — Cursos exclusivos del Tutor autenticado (Exigido en el contrato)
+ */
+export const getMyCourses = async (req, res, next) => {
+  try {
+    const courses = await courseServices.getCoursesByTutor(req.user.id);
+    return res.status(200).json(courses);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 3. POST /api/courses — Crear un curso inyectando el tutor_id del Token
  */
 export const createCourse = async (req, res, next) => {
   try {
-    const tutorIdFromToken = req.user.id; // Injected by verifyJWT
-    
-    // TODO: Manuel will implement courseRepository.insert here using tutorIdFromToken
-    return res.status(201).json({ 
-      ok: true, 
-      message: "Skeleton route active. Ready for DB logic mapping.",
-      tutor_id: tutorIdFromToken 
-    });
+    const newCourse = await courseServices.createNewCourse(req.user.id, req.body);
+    return res.status(201).json({ ok: true, course: newCourse });
   } catch (error) {
     next(error);
   }
 };
 
 /**
- * 3. PUT /api/courses/:id — Update a course (Task for Manuel)
- * Blocker #2: Validates that the authenticated tutor owns the record.
- * Blocker #3: Enforces immutable course_code constraints.
+ * 4. PUT /api/courses/:id — Modificar un curso aplicando Blocker #2 y #3 server-side
  */
 export const updateCourse = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const tutorIdFromToken = req.user.id; // Injected by verifyJWT
+    const result = await courseServices.updateExistingCourse(id, req.user.id, req.body);
 
-    // NOTE FOR MANUEL: 
-    // You must fetch the course from DB first using 'id' to execute ownership validation.
-    // example: const course = await courseRepository.findById(id);
-    
-    // TEMPORARY PROXY CHECK (Skeleton mockup to prevent system crashes)
-    const mockTutorIdFromDB = 2; // Simulating the actual owner id from database record
-
-    // 🔒 BLOCKER #2: Enforce strict server-side ownership authorization
-    if (mockTutorIdFromDB !== tutorIdFromToken) {
-      return res.status(403).json({ 
-        ok: false, 
-        message: "Forbidden: You cannot modify a course that does not belong to you." 
-      });
+    if (result.error === "NOT_FOUND") {
+      return res.status(404).json({ ok: false, message: "Course not found." });
+    }
+    if (result.error === "FORBIDDEN") {
+      return res.status(403).json({ ok: false, message: "Forbidden: You do not own this course." });
     }
 
-    // TODO: Manuel will implement immutable code validation and courseRepository.update here
-    return res.status(200).json({ 
-      ok: true, 
-      message: `Course ${id} skeleton update cleared authorization filter.` 
-    });
+    return res.status(200).json({ ok: true, course: result.course });
   } catch (error) {
     next(error);
   }
