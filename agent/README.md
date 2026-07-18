@@ -212,4 +212,4 @@ Expected response:
 
 # Authors
 
-Developed for the **Lumora** educational platform as part of the **RIWI Integrative Project**.
+Developed for the **Lumora** educational platform as part of the **RIWI Integrative Project**.d

@@ -23,9 +23,11 @@ ${text}
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-lite",
+            model: "gemini-3.5-flash",
             contents: prompt,
         });
+
+// Print detailed Gemini API error information (message, status, and cause) for debugging purposes.
 
         return response.text;
     } catch (error) {
