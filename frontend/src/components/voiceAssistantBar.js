@@ -24,12 +24,12 @@ const RATES = [0.75, 1, 1.5];
 const icon = {
   play:  `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>`,
   pause: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>`,
-  close: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>`,
-  doc:   `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`,
+  stop: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"> <rect x="6" y="6" width="12" height="12" rx="1"/> </svg>`,
+   doc:   `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`,
   spark: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5z"/></svg>`,
-  loader:`<svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`,
+  loader: `<svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`,
+  close: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>`,
 };
-
 // Estado interno de la barra
 let mounted = false;
 let playing = false;   // ¿hay una lectura en curso?
@@ -72,7 +72,13 @@ function template() {
                 title="${playing && !paused ? "Pause" : "Play"}">
           ${loading ? icon.loader : (playing && !paused ? icon.pause : icon.play)}
         </button>
-
+        
+        <button class="js-va-stop w-11 h-11 rounded-full flex items-center justify-center text-white shrink-0 cursor-pointer transition-transform hover:scale-105"
+                style="background: var(--primary)"
+                title="Stop">
+          ${icon.stop}
+        </button>
+        
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold leading-tight" style="color: var(--primary); font-family: var(--font-family-display)">
             Listen to this section
@@ -142,7 +148,11 @@ function render() {
 
 function attach(root) {
   root.querySelector(".js-va-close")?.addEventListener("click", closeBar);
-
+  
+  root.querySelector(".js-va-stop")?.addEventListener("click", () => {
+     stopSpeech();
+});
+  
   // Play / Pause / Resume
   root.querySelector(".js-va-play")?.addEventListener("click", () => {
     if (loading) return;

@@ -19,6 +19,16 @@ let utterance = null;
 let currentRate = 1;
 let isSpeaking = false;
 
+/**
+ * Verifica si el navegador soporta la API SpeechSynthesis.
+ */
+export function isSpeechSynthesisSupported() {
+  return (
+    "speechSynthesis" in window &&
+    "SpeechSynthesisUtterance" in window
+  );
+}
+
 // Callbacks que la UI puede registrar para actualizar sus botones
 // (play/pause) sin tener que sondear el estado.
 let onStateChange = null;
