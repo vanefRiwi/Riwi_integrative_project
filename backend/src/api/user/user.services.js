@@ -16,7 +16,7 @@ export const userServices = {
     // If email changes, validates that it's not taken by another user.
     const existing = await userRepository.findByEmail(email.trim());
     if (existing && existing.id !== userId) {
-      throw Object.assign(new Error("Ese email ya está en uso"), { status: 400 });
+      throw Object.assign(new Error("That email is already in use"), { status: 400 });
     }
 
     const updated = await userRepository.updateProfile(userId, {
@@ -24,7 +24,7 @@ export const userServices = {
       email: email.trim(),
       learning_goal: learning_goal || null,
     });
-    if (!updated) throw Object.assign(new Error("Usuario no encontrado"), { status: 404 });
+    if (!updated) throw Object.assign(new Error("User not found"), { status: 404 });
     return updated;
   },
 };
