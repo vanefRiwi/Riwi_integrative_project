@@ -26,26 +26,26 @@ app.use("/api/auth", authRoutes);
 // Course route
 app.use("/api/courses", courseRoutes);
 
-// // Users (perfil)
-// app.use("/api/users", userRoutes);
+// Users (perfil)
+app.use("/api/users", userRoutes);
 
-// // Enrollments (unirse/salir de cursos)
-// app.use("/api/enrollments", enrollmentRoutes);
+// Enrollments (unirse/salir de cursos)
+app.use("/api/enrollments", enrollmentRoutes);
 
-// // Submissions (quizz/review/final) + progreso
-// app.use("/api", submissionRoutes);
+// Submissions (quizz/review/final) + progreso
+app.use("/api", submissionRoutes);
 
-// // Sections + items agregados (welcome/contents/review/quizz)
-// app.use("/api", sectionRoutes);
-// app.use("/api", itemRoutes);
+// Sections + items agregados (welcome/contents/review/quizz)
+app.use("/api", sectionRoutes);
+app.use("/api", itemRoutes);
 
-// // Grades (dashboard del tutor)
-// app.use("/api", gradeRoutes);
+// Grades (dashboard del tutor)
+app.use("/api", gradeRoutes);
 
-// // Leaderboard
-// app.use("/api", leaderboardRoutes);
+// Leaderboard
+app.use("/api", leaderboardRoutes);
 
-// app.get("/", (req, res) => res.json({ ok: true, message: "Lumora API 🚀" }));
+app.get("/", (req, res) => res.json({ ok: true, message: "Lumora API 🚀" }));
 
 app.use(errorHandler);
 
