@@ -12,6 +12,7 @@
 // Contenido a leer: se obtiene de window.__lumivoice, un pequeño "puente"
 // que la vista del curso rellena con la sección actual (ver courseView).
 
+
 import {
   speakText, pauseSpeech, resumeSpeech, stopSpeech,
   setSpeechRate, setOnStateChange,

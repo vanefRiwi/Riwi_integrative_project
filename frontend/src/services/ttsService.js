@@ -186,52 +186,64 @@ export function extractQuizText(quiz = {}) {
 
 // ─── AI Summarization (vía agent/) ───────────────────────────
 
-// El agent corre en su propio proceso y guarda la API key. Vite hace
-// proxy de /agent hacia él en desarrollo (ver vite.config.js).
-const AGENT_URL = "/agent";
-
 /**
- * Pide un resumen corto al agent, que habla con el modelo de IA y guarda
- * la API key fuera del frontend. El Markdown se convierte a texto plano
- * antes de enviarlo. Si el agent falla o devuelve algo vacío, se lanza un
- * error para que quien llama pueda aplicar el fallback (leer el original).
+ * Placeholder for AI summarization.
  *
- * @param {string} markdown  contenido de la lección en Markdown
- * @returns {Promise<string>} resumen en texto plano, listo para leer
+ * Later this function will call:
+ *
+ * Frontend
+ *      ↓
+ * Agent
+ *      ↓
+ * OpenAI / Gemini
+ *
  */
 export async function summarizeText(markdown = "") {
-  const text = extractTextFromMarkdown(markdown);
-  if (!text.trim()) return "";
 
-  const res = await fetch(`${AGENT_URL}/summarize`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text }),
-  });
+    const text = extractTextFromMarkdown(markdown);
 
-  if (!res.ok) {
-    throw new Error(`Agent responded ${res.status}`);
-  }
+    const response = await fetch("http://localhost:3001/summary", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            text,
+        }),
+    });
 
-  const data = await res.json();
-  const summary = (data?.summary || "").trim();
-  if (!summary) throw new Error("Agent returned an empty summary");
-  return summary;
+    if (!response.ok) {
+        throw new Error("Failed to generate summary");
+    }
+
+    const data = await response.json();
+
+    return data.summary;
+
 }
-
 /**
- * Genera un resumen con IA y lo lee. Si la IA falla, lee el texto
- * original en su lugar (fallback silencioso: nunca se rompe).
- * @param {string} markdown
+ * Generates an AI summary and reads it.
+ *
+ * If the AI fails,
+ * LumiVoice automatically reads
+ * the original lesson instead.
  */
 export async function summarizeAndSpeak(markdown = "") {
-  try {
-    const summary = await summarizeText(markdown);
-    speakText(summary);
-  } catch (error) {
-    console.error("[LumiVoice] AI summary failed, reading original:", error);
-    speakMarkdown(markdown);
-  }
+
+    try {
+
+        const summary = await summarizeText(markdown);
+
+        speakText(summary);
+
+    } catch (error) {
+
+        console.error("AI Summary failed:", error);
+
+        speakMarkdown(markdown);
+
+    }
+
 }
 
 // ─── Compatibilidad ──────────────────────────────────────────

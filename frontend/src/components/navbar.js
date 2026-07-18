@@ -4,6 +4,7 @@
 // Includes avatar dropdown with Profile and Sign Out.
 // The microphone button opens/closes the voice assistant bar (LumiVoice).
 
+
 import { getSession, logout } from "../helpers/auth.js";
 import { navigate } from "../router/router.js";
 import { openVoiceAssistant } from "./voiceAssistantBar.js";
