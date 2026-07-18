@@ -4,29 +4,48 @@ import dotenv from "dotenv";
 
 import authRoutes from "./src/api/auth/auth.routes.js";
 import courseRoutes from "./src/api/course/course.routes.js";
+import userRoutes from "./src/api/user/user.routes.js";
+import sectionRoutes from "./src/api/section/section.routes.js";
+import itemRoutes from "./src/api/item/item.routes.js";
+import enrollmentRoutes from "./src/api/enrollment/enrollment.routes.js";
+import submissionRoutes from "./src/api/submission/submission.routes.js";
+import gradeRoutes from "./src/api/grade/grade.routes.js";
+import leaderboardRoutes from "./src/api/leaderboard/leaderboard.routes.js";
 import { errorHandler } from "./src/utils/errorHandler.js";
-import { verifyConnection } from "./src/config/postgres/postgres.db.js"; 
+import { verifyConnection } from "./src/config/postgres/postgres.db.js";
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
- 
+
 // Auth route
 app.use("/api/auth", authRoutes);
 
-// Course route: 
+// Course route
 app.use("/api/courses", courseRoutes);
 
-
-// TODO: mount the rest of the modules on the go.
-
+// // Users (perfil)
 // app.use("/api/users", userRoutes);
-// ...
 
+// // Enrollments (unirse/salir de cursos)
+// app.use("/api/enrollments", enrollmentRoutes);
 
-app.get("/", (req, res) => res.json({ ok: true, message: "Lumora API 🚀" })); //
+// // Submissions (quizz/review/final) + progreso
+// app.use("/api", submissionRoutes);
+
+// // Sections + items agregados (welcome/contents/review/quizz)
+// app.use("/api", sectionRoutes);
+// app.use("/api", itemRoutes);
+
+// // Grades (dashboard del tutor)
+// app.use("/api", gradeRoutes);
+
+// // Leaderboard
+// app.use("/api", leaderboardRoutes);
+
+// app.get("/", (req, res) => res.json({ ok: true, message: "Lumora API 🚀" }));
 
 app.use(errorHandler);
 
