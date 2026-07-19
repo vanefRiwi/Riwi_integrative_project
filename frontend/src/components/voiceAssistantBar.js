@@ -179,7 +179,7 @@ function template() {
         </button>
 
         <div class="flex-1 min-w-0">
-            <p class="text-sm font-bold leading-tigh text-center"
+             <p class="text-sm font-bold leading-tigh text-center"
               style="color: var(--primary); font-family: var(--font-family-display)">
               LumiVoice
              </p>
@@ -363,6 +363,11 @@ export function openVoiceAssistant() {
   minimized = false;
   showSettings = false;
 
+  // Expose closeBar globally so other parts of the app (for example the
+  // logout helper) can dismiss the bar without importing this module, which
+  // would risk a circular dependency. Cleared again in closeBar().
+  window.__lumivoiceClose = closeBar;
+
   // The bar reacts to the service state changes
   setOnStateChange((state) => {
     playing = state === "playing" || state === "paused";
@@ -385,6 +390,7 @@ export function closeBar() {
   showSettings = false;
   const el = document.getElementById("lumivoice-host");
   if (el) el.innerHTML = "";
+  window.__lumivoiceClose = null;
 }
 
 export function isVoiceAssistantOpen() {
