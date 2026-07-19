@@ -9,7 +9,7 @@ const router = express.Router();
 /**
  * This route receives a POST request with a lesson text in the body.
  * It uses the summarizeText function to generate a summary of the lesson.
- * The summary is then sent back in the response.
+ * The summary is then sent back in the response 
  */
 router.post("/", async (req, res) => {
     try {
