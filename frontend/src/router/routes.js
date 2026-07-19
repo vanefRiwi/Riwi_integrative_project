@@ -1,4 +1,5 @@
 // SPA Route Map.
+import { introView, initIntro } from "../views/intro/introView.js";
 import { loginView, initLogin } from "../views/auth/login.js";
 import { registerView, initRegister } from "../views/auth/register.js";
 import { studentHomeView, initStudentHome } from "../views/student/studentHome.js";
@@ -47,6 +48,7 @@ async function canAccessCourse(session) {
 }
 
 export const routes = {
+  "/intro":            { view: introView,       init: initIntro,       roles: [] },
   "/login":            { view: loginView,       init: initLogin,       roles: [] },
   "/register":         { view: registerView,    init: initRegister,    roles: [] },
 

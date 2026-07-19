@@ -35,8 +35,9 @@ export async function renderRoute() {
   const session = getSession();
 
   // ── Root “/”: redirects to the appropriate home page (not a 404) ──
+  // Logged-out visitors see the animated intro first, which then leads to /login.
   if (path === "/" || path === "") {
-    return navigate(!session ? "/login" : session.role === "tutor" ? "/tutor" : "/student");
+    return navigate(!session ? "/intro" : session.role === "tutor" ? "/tutor" : "/student");
   }
 
   const route = routes[path];
@@ -65,9 +66,9 @@ export async function renderRoute() {
     }
   }
 
-  // ── If the user is ALREADY logged in and goes to login/register, we redirect them to their home page ──
-  // (prevents a logged-in user from seeing the login form)
-  if (session && (path === "/login" || path === "/register")) {
+  // ── If the user is ALREADY logged in and goes to intro/login/register, we redirect them to their home page ──
+  // (prevents a logged-in user from seeing the intro or login form)
+  if (session && (path === "/intro" || path === "/login" || path === "/register")) {
     return navigate(session.role === "tutor" ? "/tutor" : "/student");
   }
 

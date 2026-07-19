@@ -142,7 +142,7 @@ export function initNavbar(root = document) {
   // Sign Out
   root.querySelector(".js-signout")?.addEventListener("click", () => {
     logout();
-    navigate("/login");
+    navigate("/intro");
   });
 
   // AI Voice Assistant → abre / cierra la barra LumiVoice
