@@ -117,6 +117,6 @@ export function initProfile() {
   // Log out: clears session and returns to login
   root.querySelector(".js-logout").addEventListener("click", () => {
     logout();
-    navigate("/login");
+    navigate("/intro");
   });
 }
