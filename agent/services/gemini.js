@@ -3,14 +3,23 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-//Google Gemini Service 
-//responsible for comunicating with the Google Gemini API to generate summaries of lessons.
-const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY,
-});
+// Google Gemini Service
+// Responsible for communicating with the Google Gemini API to generate
+// summaries of lessons.
+//
+// The API key can come from two places, in this order:
+//   1. `userApiKey`, a key the user pasted in the voice assistant settings
+//      (sent per request from the frontend). Lets the user swap an expired
+//      key from the UI without touching the code or .env.
+//   2. process.env.GEMINI_API_KEY, the server default from the .env file.
 
-//build the prompt sent to Gemini
-export async function summarizeText(text) {
+// Build the prompt sent to Gemini
+export async function summarizeText(text, userApiKey) {
+    // Prefer the user-provided key; fall back to the server .env key.
+    const apiKey = (userApiKey && userApiKey.trim()) || process.env.GEMINI_API_KEY;
+
+    const ai = new GoogleGenAI({ apiKey });
+
     try {
         const prompt = `
 You are an educational assistant for Lumora.
@@ -45,11 +54,5 @@ ${text}
         }
 
         throw error;
-
-        dotenv.config();
-        console.log(
-            "gemini API Hey:",
-            process.env.GEMINI_API_KEY ? "loaded" : "not loaded"
-        )
     }
 }
