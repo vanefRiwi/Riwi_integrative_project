@@ -1,11 +1,8 @@
 import { courseServices } from "./course.services.js";
 
-/**
- * 1. GET /api/courses — Catálogo general con filtros del Blocker #2
- */
+// GET /api/courses — General catalog with visibility filters per role
 export const getCourses = async (req, res, next) => {
   try {
-    // req.user viene inyectado por tu Middleware verifyJWT 🎉
     const courses = await courseServices.getCoursesForUser(req.user);
     return res.status(200).json(courses);
   } catch (error) {
@@ -13,9 +10,7 @@ export const getCourses = async (req, res, next) => {
   }
 };
 
-/**
- * 2. GET /api/courses/mine — Cursos exclusivos del Tutor autenticado (Exigido en el contrato)
- */
+// GET /api/courses/mine — Cursos exclusivos del Tutor autenticado
 export const getMyCourses = async (req, res, next) => {
   try {
     const courses = await courseServices.getCoursesByTutor(req.user.id);
@@ -25,9 +20,28 @@ export const getMyCourses = async (req, res, next) => {
   }
 };
 
-/**
- * 3. POST /api/courses — Crear un curso inyectando el tutor_id del Token
- */
+// GET /api/courses/stats — Stats agregadas del tutor autenticado
+export const getMyStats = async (req, res, next) => {
+  try {
+    const stats = await courseServices.getTutorStats(req.user.id);
+    return res.status(200).json(stats);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/courses/:id — Detalle de un curso
+export const getCourseById = async (req, res, next) => {
+  try {
+    const course = await courseServices.getCourseById(req.params.id, req.user);
+    if (!course) return res.status(404).json({ ok: false, message: "Course not found." });
+    return res.status(200).json(course);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/courses — Crear un curso inyectando el tutor_id del Token
 export const createCourse = async (req, res, next) => {
   try {
     const newCourse = await courseServices.createNewCourse(req.user.id, req.body);
@@ -37,9 +51,7 @@ export const createCourse = async (req, res, next) => {
   }
 };
 
-/**
- * 4. PUT /api/courses/:id — Modificar un curso aplicando Blocker #2 y #3 server-side
- */
+// PUT /api/courses/:id — Modificar un curso validando propiedad server-side
 export const updateCourse = async (req, res, next) => {
   try {
     const { id } = req.params;

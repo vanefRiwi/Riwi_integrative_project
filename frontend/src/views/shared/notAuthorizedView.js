@@ -1,11 +1,12 @@
 // ─── 403 — Not Authorized ─────────────────────────────────────────────────────
-// Se muestra cuando el usuario intenta entrar a una ruta que NO corresponde
-// a su rol (ej. un student abriendo /tutor/editor, o al revés).
+// Displayed when a user attempts to access a path that does NOT correspond
+// to their role (e.g., a student opening /tutor/editor, or vice versa).
 //
-// Distingue dos casos:
-//   - Sin sesión        -> le pide iniciar sesión.
-//   - Rol incorrecto    -> le explica que su cuenta no tiene acceso y le
-//                          ofrece volver a SU home (el de su rol).
+// Distinguishes between two cases:
+//   - Not logged in        -> prompts the user to log in.
+//   - Incorrect role    -> explains that their account does not have access and
+//                          offers to return to THEIR home page (the one for their role).
+
 
 import { getSession, logout } from "../../helpers/auth.js";
 import { navigate } from "../../router/router.js";
@@ -21,7 +22,7 @@ export function notAuthorizedView() {
   const session = getSession();
   const roleLabel = session?.role === "tutor" ? "Tutor" : "Student";
 
-  // Sin sesión: hay que iniciar sesión
+  // No session: You must log in
   const noSession = `
     <p class="text-sm mb-8 leading-relaxed" style="color: var(--muted-foreground)">
       You need to sign in to access this page.
@@ -29,7 +30,7 @@ export function notAuthorizedView() {
     <button class="js-login flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white cursor-pointer mx-auto"
             style="background: var(--primary)">${icon.login} Sign in</button>`;
 
-  // Con sesión pero rol equivocado
+  // Logged in but with the wrong role
   const wrongRole = `
     <p class="text-sm mb-2 leading-relaxed" style="color: var(--muted-foreground)">
       Your account doesn't have permission to view this page.
@@ -67,12 +68,12 @@ export function initNotAuthorized() {
   const root = document.getElementById("app");
   const session = getSession();
 
-  // Volver al home que SÍ le corresponde a su rol
+  // Return to the home page that DOES correspond to your role
   root.querySelector(".js-home")?.addEventListener("click", () => {
     navigate(session?.role === "tutor" ? "/tutor" : "/student");
   });
 
-  // Cambiar de cuenta: cierra sesión y va al login
+  // Switch accounts: logs out and goes to the login page
   root.querySelector(".js-switch")?.addEventListener("click", () => {
     logout();
     navigate("/login");

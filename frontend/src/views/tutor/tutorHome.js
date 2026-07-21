@@ -1,6 +1,6 @@
 // ─── Tutor Home ───────────────────────────────────────────────────────────────
-// Banner de bienvenida + stats + gestión de cursos (Edit / Preview).
-// Los datos vienen de data/courses.js (hoy mock, mañana la API real).
+// Welcome banner + stats + course management (Edit / Preview).
+// Data comes from data/courses.js (today mock, tomorrow the real API).
 
 import { navbar, initNavbar } from "../../components/navbar.js";
 import { courseCard } from "../../components/courseCard.js";
@@ -17,12 +17,12 @@ const icon = {
   capBig: `<svg class="w-40 h-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`,
 };
 
-// Estado de la vista
+// View state
 let allCourses = [];
 let stats = { totalCourses: 0, totalStudents: 0, totalSections: 0, sectionsPerCourse: 0 };
 let search = "";
 
-// Tarjeta de estadística (con línea extra de detalle)
+// Stat card (with extra detail line)
 function statCard(iconSvg, value, label, detail) {
   return `
     <div class="rounded-xl p-5 flex items-start gap-4" style="background: var(--card); border: 1px solid var(--border)">
@@ -36,7 +36,7 @@ function statCard(iconSvg, value, label, detail) {
     </div>`;
 }
 
-// Cursos filtrados por la búsqueda
+// Courses filtered by search
 function filteredCourses() {
   const term = search.toLowerCase();
   return allCourses.filter(
@@ -62,7 +62,7 @@ export function tutorHomeView() {
 
       <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
-        <!-- Banner de bienvenida -->
+        <!-- Welcome banner -->
         <div class="relative overflow-hidden rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8" style="background: var(--primary)">
           <div class="relative z-10">
             <p class="text-green-200 text-sm font-medium mb-1">Good morning,</p>
@@ -79,14 +79,14 @@ export function tutorHomeView() {
           <div class="absolute -right-4 -top-8 w-32 h-32 rounded-full bg-white/5"></div>
         </div>
 
-        <!-- Estadísticas -->
+        <!-- Statistics -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           ${statCard(icon.book, stats.totalCourses, "Total courses", `${stats.totalCourses} active`)}
           ${statCard(icon.users, stats.totalStudents.toLocaleString(), "Total students", "Across all courses")}
           ${statCard(icon.layout, stats.totalSections, "Sections created", `${stats.sectionsPerCourse} per course`)}
         </div>
 
-        <!-- Encabezado de cursos -->
+        <!-- Courses header -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div>
             <h2 class="text-xl font-bold" style="font-family: var(--font-family-display)">All Courses</h2>
@@ -104,7 +104,7 @@ export function tutorHomeView() {
           </div>
         </div>
 
-        <!-- Grid de cursos -->
+        <!-- Courses grid -->
         <div class="js-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           ${coursesGrid()}
         </div>
@@ -113,16 +113,16 @@ export function tutorHomeView() {
   `;
 }
 
-// Engancha los botones Edit / Preview de cada tarjeta
+// Hooks the Edit / Preview buttons for each card
 function bindCardActions(root) {
   root.querySelectorAll("[data-edit]").forEach((btn) =>
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      // Regla 3: solo llega aquí si el curso es suyo (getTutorCourses ya filtró)
+      // Rule 3: only reaches here if the course is theirs (getTutorCourses already filtered)
       navigate(`/tutor/editor?id=${btn.dataset.edit}`);
     })
   );
-  // "Preview": ver el curso tal como lo vería un estudiante
+  // "Preview": view the course as a student would see it
   root.querySelectorAll("[data-preview]").forEach((btn) =>
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -134,7 +134,7 @@ function bindCardActions(root) {
 function attachEvents(root) {
   initNavbar(root);
 
-  // Búsqueda en vivo (solo re-pinta el grid)
+  // Live search (only re-renders the grid)
   root.querySelector(".js-search").addEventListener("input", (e) => {
     search = e.target.value;
     root.querySelector(".js-grid").innerHTML = coursesGrid();
@@ -142,9 +142,9 @@ function attachEvents(root) {
     bindCardActions(root);
   });
 
-  // Botón "Add" (crear curso nuevo)
+  // "Add" button (create new course)
   root.querySelector(".js-add").addEventListener("click", () => {
-    navigate("/tutor/editor");   // Regla 2: solo tutores (ruta protegida por rol)
+    navigate("/tutor/editor");   // Rule 2: only tutors (role-protected route)
   });
 
   bindCardActions(root);
@@ -153,8 +153,8 @@ function attachEvents(root) {
 export async function initTutorHome() {
   const root = document.getElementById("app");
 
-  // Carga los datos (hoy mock, mañana la API real)
-  // Regla 3: solo los cursos creados por este tutor
+  // Loads data (today mock, tomorrow the real API)
+  // Rule 3: only courses created by this tutor
   allCourses = await getTutorCourses();
   stats = await getTutorStats();
   search = "";

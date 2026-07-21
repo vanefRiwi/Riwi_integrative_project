@@ -1,16 +1,16 @@
-// ─── MOCK: Contenidos ─────────────────────────────────────────────────────────
-// ⚠️ Formato IDÉNTICO al que devolverá la API REST.
-// Cuando el backend esté listo, este archivo se borra y NADA MÁS cambia.
+// ─── MOCK: Content ─────────────────────────────────────────────────────────
+// Format IDENTICAL to what the REST API will return.
+// When the backend is ready, this file is deleted and NOTHING ELSE changes.
 //
-// Contrato acordado con backend:
+// Contract agreed upon with the backend:
 //   GET /api/sections/:id/contents  ->  Content[]
 //
 //   Content = {
 //     id:     number
-//     titulo: string
-//     tipo:   "readme" | "youtube" | "canva"
-//     datos:  string    // markdown | id/url de YouTube | url embed de Canva
-//     orden:  number    // orden de aparición dentro de la sección
+//     title: string
+//     type:   “readme” | ‘youtube’ | “canva”
+//     data:  string    // Markdown | YouTube ID/URL | Canva embed URL
+//     order:  number    // order of appearance within the section
 //   }
 
 export const MOCK_CONTENTS = {

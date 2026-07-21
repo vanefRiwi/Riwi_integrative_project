@@ -1,5 +1,5 @@
 // ─── 404 — Not Found ──────────────────────────────────────────────────────────
-// Se muestra cuando la URL no corresponde a ninguna ruta registrada.
+// Displayed when the URL does not match any registered route.
 
 import { getSession } from "../../helpers/auth.js";
 import { navigate } from "../../router/router.js";

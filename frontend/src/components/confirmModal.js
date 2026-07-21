@@ -1,6 +1,6 @@
 // ─── Confirm Modal ────────────────────────────────────────────────────────────
-// Reemplaza a window.confirm() con un modal acorde al diseño.
-// Uso:  const ok = await confirmModal({ title, message, confirmText, danger });
+// Replaces window.confirm() with a modal matching the design.
+// Usage: const ok = await confirmModal({ title, message, confirmText, danger });
 
 const icon = {
   warning: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`,
@@ -60,7 +60,7 @@ export function confirmModal({
       setTimeout(() => { overlay.remove(); resolve(result); }, 180);
     };
 
-    // Escape = cancelar · Enter = confirmar
+    // Escape = cancel · Enter = confirm
     const onKey = (e) => {
       if (e.key === "Escape") close(false);
       if (e.key === "Enter") close(true);

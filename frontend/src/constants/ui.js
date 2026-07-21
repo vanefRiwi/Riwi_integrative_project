@@ -1,6 +1,6 @@
-// ─── Constantes de presentación ──────────────────────────────────────────────
-// NO dependen del origen de datos. Los componentes importan de aquí,
-// nunca de data/ ni de services/ (así quedan 100% desacoplados).
+// ─── Presentation constants ────────────────────────────────────────────────────
+// Do NOT depend on the data source. Components import from here,
+// never from data/ or services/ (so they remain 100% decoupled).
 
 export const LEVEL_COLORS = {
   Beginner:     "bg-emerald-100 text-emerald-700",

@@ -1,34 +1,34 @@
 // ─── Course Service ───────────────────────────────────────────────────────────
 //
 // ╔═══════════════════════════════════════════════════════════════════════════╗
-// ║  🚨 REQUISITO BLOQUEANTE PARA EL BACKEND — LEER ANTES DE INTEGRAR        ║
+// ║   BLOCKING REQUIREMENT FOR BACKEND — READ BEFORE INTEGRATING            ║
 // ╠═══════════════════════════════════════════════════════════════════════════╣
 // ║                                                                           ║
-// ║  HOY (mock): el frontend recibe las preguntas CON el campo `correct` y    ║
-// ║  califica localmente. Esto es INSEGURO: cualquier estudiante abre         ║
-// ║  DevTools y ve todas las respuestas correctas.                            ║
+// ║  TODAY (mock): the frontend receives questions WITH the `correct` field  ║
+// ║  and grades locally. This is INSECURE: any student opens DevTools and    ║
+// ║  sees all the correct answers.                                           ║
 // ║                                                                           ║
-// ║  AL INTEGRAR EL BACKEND, es OBLIGATORIO:                                  ║
+// ║  WHEN INTEGRATING THE BACKEND, it's MANDATORY:                           ║
 // ║                                                                           ║
 // ║   1. GET /api/sections/:id/items                                          ║
-// ║      -> NUNCA debe incluir el campo `correct` en las preguntas.           ║
-// ║         El servidor lo elimina antes de responder.                        ║
+// ║      -> MUST NEVER include the `correct` field in questions.             ║
+// ║         The server removes it before responding.                         ║
 // ║                                                                           ║
 // ║   2. POST /api/submissions                                                ║
-// ║      -> Recibe SOLO las respuestas del alumno.                            ║
-// ║         El SERVIDOR compara, califica y devuelve { score, total, points }. ║
+// ║      -> Receives ONLY the student's answers.                             ║
+// ║         The SERVER compares, grades and returns { score, total, points }. ║
 // ║                                                                           ║
-// ║  ⚠️ Esto CAMBIARÁ el frontend: submitQuizz() dejará de calcular el score  ║
-// ║     localmente y pasará a leerlo de la respuesta del backend.             ║
-// ║     Está previsto y aislado en este archivo (ver submitQuizz).            ║
+// ║  ⚠️ This WILL CHANGE the frontend: submitQuizz() will stop calculating   ║
+// ║     the score locally and will read it from the backend response.        ║
+// ║     It's planned and isolated in this file (see submitQuizz).            ║
 // ║                                                                           ║
-// ║  Ver: QUIZZES_Y_REVIEWS.md · Criterio de aceptación de la HU de backend.  ║
+// ║  See: QUIZZES_Y_REVIEWS.md · Acceptance criteria for the backend HU.     ║
 // ╚═══════════════════════════════════════════════════════════════════════════╝
 //
-// Puerta de entrada al contenido de un curso (secciones, items, progreso).
+// Gateway to course content (sections, items, progress).
 //
-// 🔌 INTEGRACIÓN: descomenta `api` y reemplaza el cuerpo de cada función.
-// Las vistas NO cambian.
+// INTEGRATION: uncomment `api` and replace the body of each function.
+// The views do NOT change.
 
 // import { api } from "../helpers/api.js";
 import {
@@ -42,14 +42,14 @@ import {
 } from "../mocks/courseContent.mock.js";
 import { getCourseById } from "../data/courses.js";
 
-// ── Estructura del curso ─────────────────────────────────────────────────────
+// ── Course structure ──────────────────────────────────────────────────────────
 
 // GET /api/courses/:id/sections
 export async function getSections(courseId) {
-  // FUTURO: const { data } = await api.get(`/courses/${courseId}/sections`); return data;
+  // FUTURE: const { data } = await api.get(`/courses/${courseId}/sections`); return data;
   const course = await getCourseById(courseId);
 
-  // Si el tutor creó el curso desde el editor, usamos SUS secciones
+  // If the tutor created the course from the editor, we use THEIR sections
   if (course?.sections?.length) {
     return course.sections.map((s, i) => ({
       id: s.id,
@@ -63,10 +63,10 @@ export async function getSections(courseId) {
 
 // GET /api/sections/:id/items  -> welcome, content, review, quizz
 export async function getSectionItems(courseId, sectionId) {
-  // FUTURO: const { data } = await api.get(`/sections/${sectionId}/items`); return data;
+  // FUTURE: const { data } = await api.get(`/sections/${sectionId}/items`); return data;
   const course = await getCourseById(courseId);
 
-  // Curso creado por el tutor -> leemos lo que él guardó
+  // Course created by tutor -> we read what they saved
   const custom = course?.items?.[sectionId];
   if (custom) {
     return {
@@ -77,7 +77,7 @@ export async function getSectionItems(courseId, sectionId) {
     };
   }
 
-  // Curso de ejemplo -> mocks
+  // Example course -> mocks
   return {
     welcome: MOCK_WELCOME[sectionId] || { message: "", videoUrl: "" },
     contents: MOCK_COURSE_CONTENTS[sectionId] || [],
@@ -88,7 +88,7 @@ export async function getSectionItems(courseId, sectionId) {
 
 // GET /api/courses/:id/final-assessment
 export async function getFinalAssessment(courseId) {
-  // FUTURO: const { data } = await api.get(`/courses/${courseId}/final`); return data;
+  // FUTURE: const { data } = await api.get(`/courses/${courseId}/final`); return data;
   const course = await getCourseById(courseId);
   return course?.finalAssessment?.questions?.length
     ? course.finalAssessment
@@ -97,36 +97,36 @@ export async function getFinalAssessment(courseId) {
 
 // GET /api/courses/:id/leaderboard
 export async function getLeaderboard(courseId) {
-  // FUTURO: const { data } = await api.get(`/courses/${courseId}/leaderboard`); return data;
+  // FUTURE: const { data } = await api.get(`/courses/${courseId}/leaderboard`); return data;
   return [...MOCK_LEADERBOARD].sort((a, b) => b.points - a.points);
 }
 
-// ── Progreso del estudiante ──────────────────────────────────────────────────
-// Hoy en localStorage; mañana serán las tablas `submissions` del backend.
-// FUTURO: GET/POST /api/submissions
+// ── Student progress ──────────────────────────────────────────────────────────
+// Today in localStorage; tomorrow they'll be the backend `submissions` tables.
+// FUTURE: GET/POST /api/submissions
 
 const key = (courseId) => `progress:${courseId}`;
 
 // { quizzes: { [sectionId]: { score, points } }, reviews: { [sectionId]: true }, final: {...} }
 export async function getProgress(courseId) {
-  // FUTURO: const { data } = await api.get(`/courses/${courseId}/progress`); return data;
+  // FUTURE: const { data } = await api.get(`/courses/${courseId}/progress`); return data;
   const saved = localStorage.getItem(key(courseId));
   return saved ? JSON.parse(saved) : { quizzes: {}, reviews: {}, final: null };
 }
 
-// POST /api/submissions  -> guarda el resultado de un quizz
-// ⚠️ La CALIFICACIÓN vive aquí, NO en la vista.
+// POST /api/submissions  -> saves the result of a quiz
+//  The GRADING lives here, NOT in the view.
 //
-// Recibe las RESPUESTAS del alumno (no el score ya calculado). Hoy corrige
-// localmente contra el mock; mañana el SERVIDOR corrige y devuelve el score.
-// La vista solo envía respuestas y muestra el resultado: no sabe corregir.
+// Receives the student's ANSWERS (not the already calculated score). Today corrects
+// locally against the mock; tomorrow the SERVER corrects and returns the score.
+// The view only sends answers and displays the result: it doesn't know how to grade.
 //
-// FUTURO (backend obligatorio):
+// FUTURE (backend mandatory):
 //   const { data } = await api.post("/submissions", { item_id, answers });
 //   return { progress: await getProgress(courseId), result: data };
-//   ...y este archivo deja de ver `q.correct` (el backend nunca lo envía).
+//   ...and this file stops seeing `q.correct` (the backend never sends it).
 export async function submitQuizz(courseId, sectionId, { quiz, answers }) {
-  // ── Corrección (esto se MUEVE al servidor al integrar) ──
+  // ── Grading (this MOVES to the server when integrating) ──
   const correct = quiz.questions.filter((q) => answers[q.id] === q.correct).length;
   const total = quiz.questions.length;
   const points = Math.round((correct / total) * (quiz.points || 50));
@@ -135,13 +135,13 @@ export async function submitQuizz(courseId, sectionId, { quiz, answers }) {
   p.quizzes[sectionId] = { score: correct, total, points };
   localStorage.setItem(key(courseId), JSON.stringify(p));
 
-  // Devuelve progreso + resultado (misma forma que devolverá la API)
+  // Returns progress + result (same format the API will return)
   return { progress: p, result: { correct, total, points } };
 }
 
-// POST /api/submissions  -> guarda el resultado de una review
-// ⚠️ Las reviews NO otorgan puntos al leaderboard (solo los quizzes).
-// Son actividades de práctica: dan feedback, pero no puntúan ni califican.
+// POST /api/submissions  -> saves the result of a review
+// ⚠️ Reviews do NOT award leaderboard points (only quizzes do).
+// They are practice activities: they provide feedback, but don't score or grade.
 export async function submitReview(courseId, sectionId, { correct }) {
   const p = await getProgress(courseId);
   p.reviews[sectionId] = { correct, completed: true };
@@ -149,8 +149,8 @@ export async function submitReview(courseId, sectionId, { correct }) {
   return p;
 }
 
-// Igual que submitQuizz: la corrección vive aquí, no en la vista.
-// FUTURO: la hace el servidor (POST /api/submissions con item_id del final).
+// Just like submitQuizz: the grading happens here, not in the view.
+// FUTURE: It's done by the server (POST /api/submissions with the item_id at the end).
 export async function submitFinal(courseId, { quiz, answers }) {
   const correct = quiz.questions.filter((q) => answers[q.id] === q.correct).length;
   const total = quiz.questions.length;
@@ -163,35 +163,36 @@ export async function submitFinal(courseId, { quiz, answers }) {
   return { progress: p, result: { correct, total, points } };
 }
 
-// ── Reglas de desbloqueo (lock progresivo) ───────────────────────────────────
+ // ── Unlock Rules (Progressive Unlock) ───────────────────────────────────
 
-// Una sección está desbloqueada si es la primera, o si el quizz de la ANTERIOR
-// ya fue completado.
+// A section is unlocked if it is the first one, or if the quiz from the PREVIOUS
+// section has already been completed.
+
 export function isSectionUnlocked(sections, sectionId, progress) {
   const idx = sections.findIndex((s) => s.id === sectionId);
-  if (idx <= 0) return true;                       // la primera siempre abierta
+  if (idx <= 0) return true;                       // the first one is always open
   const prev = sections[idx - 1];
-  return Boolean(progress.quizzes[prev.id]);       // ¿hizo el quizz anterior?
+  return Boolean(progress.quizzes[prev.id]);       // Did you take the quiz above?
 }
 
-// El examen final se desbloquea al completar TODOS los quizzes
+// The final exam is unlocked after completing ALL the quizzes
 export function isFinalUnlocked(sections, progress) {
   return sections.every((s) => Boolean(progress.quizzes[s.id]));
 }
 
-// ── Cálculo de notas (reutilizable: student Grades + tutor Dashboard) ────────
+// ── Grade Calculation (reusable: Student Grades + Instructor Dashboard) ────────
 
-// NOTA FINAL DEL CURSO
-// Promedio entre los quizzes de cada sección + el examen final.
-// La cantidad de quizzes varía según el curso, por eso se divide entre
-// (nº de secciones + 1 por el final).
+// FINAL COURSE GRADE
+// Average of the quizzes for each section + the final exam.
+// The number of quizzes varies by course, so it is divided by
+// (number of sections + 1 for the final).
 //
-// Cada item aporta su porcentaje (score/total * 100). Los no presentados
-// cuentan como 0, porque el curso no está completo hasta hacerlos todos.
+// Each item contributes its percentage (score/total * 100). Unsubmitted items
+// count as 0, because the course is not complete until all of them are submitted.
 //
-// Devuelve null si el estudiante aún no ha presentado NADA.
+// Returns null if the student has not yet submitted ANYTHING.
 export function finalGrade(sections, progress) {
-  const totalItems = sections.length + 1;          // quizzes + examen final
+  const totalItems = sections.length + 1;          // quizzes +  final assestment
   if (!totalItems) return null;
 
   const pct = (r) => (r && r.total ? (r.score / r.total) * 100 : 0);
@@ -201,12 +202,12 @@ export function finalGrade(sections, progress) {
 
   const presented =
     sections.filter((s) => progress.quizzes[s.id]).length + (progress.final ? 1 : 0);
-  if (!presented) return null;                     // no ha presentado nada
+  if (!presented) return null;                     // the student has not yet submitted ANYTHING.
 
   return Math.round(((quizSum + finalSum) / totalItems) * 10) / 10;
 }
 
-// Desglose de notas individuales (para el reporte del tutor y el panel Grades)
+// Breakdown of individual grades (for the tutor's report and the Grades panel)
 // [{ label, score, total, percent, points, status }]
 export function gradeBreakdown(sections, progress) {
   const rows = sections.map((s) => {
@@ -236,7 +237,7 @@ export function gradeBreakdown(sections, progress) {
   return rows;
 }
 
-// Puntos totales del leaderboard (SOLO quizzes + final; las reviews no puntúan)
+// Total leaderboard points (ONLY quizzes + final; reviews do not count toward the score)
 export function totalPoints(sections, progress) {
   const fromQuizzes = sections.reduce(
     (sum, s) => sum + (progress.quizzes[s.id]?.points || 0), 0
@@ -244,18 +245,18 @@ export function totalPoints(sections, progress) {
   return fromQuizzes + (progress.final?.points || 0);
 }
 
-// ─── Dashboard del tutor ─────────────────────────────────────────────────────
+// ─── Instructor Dashboard ─────────────────────────────────────────────────────
 
 // GET /api/courses/:id/students
-// Devuelve los estudiantes inscritos con TODAS sus notas (individuales + final).
-// FUTURO: el backend lo resuelve con JOIN users + enrollments + submissions.
+// Returns enrolled students with ALL their grades (individual + final).
+// FUTURE: The backend handles this using a JOIN of users, enrollments, and submissions.
 export async function getCourseStudents(courseId, sections) {
-  // FUTURO: const { data } = await api.get(`/courses/${courseId}/students`); return data;
+  // FUTURE: const { data } = await api.get(`/courses/${courseId}/students`); return data;
   const { studentsForCourse } = await import("../mocks/enrollments.mock.js");
   const students = studentsForCourse(courseId);
 
-  // Reutilizamos EXACTAMENTE la misma lógica de nota que ve el estudiante,
-  // para que tutor y estudiante nunca vean cifras distintas.
+  // We reuse EXACTLY the same grading logic that the student sees,
+  // so that the tutor and the student never see different scores.
   return students.map((st) => {
     const progress = {
       quizzes: st.grades.quizzes || {},
@@ -264,14 +265,14 @@ export async function getCourseStudents(courseId, sections) {
     };
     return {
       ...st,
-      finalGrade: finalGrade(sections, progress),      // null si no ha presentado nada
-      breakdown: gradeBreakdown(sections, progress),   // nota por quizz + examen
+      finalGrade: finalGrade(sections, progress),      // null if you haven't submitted anything
+      breakdown: gradeBreakdown(sections, progress),   // Grade for quiz + exam
       points: totalPoints(sections, progress),
     };
   });
 }
 
-// Estadísticas del curso para el Dashboard
+// Course Statistics for the Dashboard
 export function courseStats(students) {
   const graded = students.filter((s) => s.finalGrade !== null);
   const avg = graded.length
@@ -285,22 +286,22 @@ export function courseStats(students) {
   };
 }
 
-// ─── Cálculo de la NOTA FINAL ────────────────────────────────────────────────
+// ─── Calculation of the FINAL GRADE ────────────────────────────────────────────────
 //
-// Fórmula: promedio de (quizz de cada sección + examen final).
-//   nota = suma(porcentajes) / (nº de secciones + 1)
+// Formula: average of (quizzes for each section + final exam).
+//   grade = sum(percentages) / (number of sections + 1)
 //
-// El examen final cuenta como UN item más, igual que cada quizz.
-// Los items no presentados cuentan como 0.
-// Las reviews NO cuentan (son práctica, no evaluación) ni dan puntos.
+// The final exam counts as ONE additional item, just like each quiz.
+// Items not submitted count as 0.
+// Reviews do NOT count (they are practice, not assessment) and do not award points.
 //
-// ⚠️ Esta es la ÚNICA fuente de verdad de la nota: la usa tanto el estudiante
-// en "My Grades" como el tutor en el Dashboard. Así ambos ven lo mismo.
-// FUTURO: el backend puede replicar esta fórmula sobre la tabla `submissions`.
+//  This is the ONLY true source of the grade: it is used by both the student
+// in “My Grades” and the instructor in the Dashboard. This way, both see the same information.
+// FUTURE: the backend can replicate this formula on the `submissions` table.
 export function calculateFinalGrade(sections, progress) {
   const safe = progress || { quizzes: {}, reviews: {}, final: null };
   const quizzes = safe.quizzes || {};
-  const totalItems = sections.length + 1;   // quizzes + examen final
+  const totalItems = sections.length + 1;   // quizzes + final assestment
 
   if (!sections.length) {
     return { grade: 0, breakdown: [], completed: 0, totalItems: 0, points: 0 };
@@ -310,7 +311,7 @@ export function calculateFinalGrade(sections, progress) {
   let sum = 0;
   let completed = 0;
 
-  // Un item por cada quizz de sección
+  // One item for each section quiz
   sections.forEach((sec) => {
     const q = quizzes[sec.id];
     const pct = q ? Math.round((q.score / q.total) * 100) : 0;
@@ -326,7 +327,7 @@ export function calculateFinalGrade(sections, progress) {
     });
   });
 
-  // El examen final es un item más
+  // The final exam is just one more item
   const f = safe.final;
   const fPct = f ? Math.round((f.score / f.total) * 100) : 0;
   if (f) { sum += fPct; completed++; }
@@ -340,27 +341,27 @@ export function calculateFinalGrade(sections, progress) {
     status: f ? "graded" : isFinalUnlocked(sections, safe) ? "pending" : "locked",
   });
 
-  // Nota definitiva: promedio sobre TODOS los items (los no hechos valen 0)
+  // Final score: average of ALL items (uncompleted items count as 0)
   const grade = Math.round((sum / totalItems) * 10) / 10;
 
-  // Puntos del leaderboard: SOLO quizzes + final (las reviews no dan puntos)
+  // Leaderboard points: ONLY quizzes + final (reviews do not earn points)
   const points = breakdown.reduce((acc, b) => acc + (b.points || 0), 0);
 
-  // Puntos MÁXIMOS posibles del curso (para el "Out of X total").
-  // Por defecto: 50 pts por quizz de sección + 200 del examen final.
-  // FUTURO: el backend enviará el valor real de `points` de cada item.
+  // Maximum possible points for the course (for “Out of X total”).
+  // Default: 50 points per section quiz + 200 for the final exam.
+  // FUTURE: The backend will send the actual `points` value for each item.
   const maxPoints = sections.length * 50 + 200;
 
   return { grade, breakdown, completed, totalItems, points, maxPoints };
 }
 
-// ─── Estudiantes inscritos (Dashboard del tutor) ─────────────────────────────
+// ─── Enrolled Students (Instructor Dashboard) ─────────────────────────────
 
 // GET /api/courses/:id/students
-// Devuelve los estudiantes con su `progress` para que el frontend calcule
-// las notas con calculateFinalGrade() — la MISMA fórmula que ve el estudiante.
+// Returns students along with their `progress` so the frontend can calculate
+// grades using calculateFinalGrade() — the SAME formula the student sees.
 export async function getEnrolledStudents(courseId) {
-  // FUTURO: const { data } = await api.get(`/courses/${courseId}/students`); return data;
+  // FUTURE: const { data } = await api.get(`/courses/${courseId}/students`); return data;
   const { MOCK_ENROLLED_STUDENTS, DEFAULT_STUDENTS } = await import("../mocks/students.mock.js");
   return MOCK_ENROLLED_STUDENTS[courseId] || DEFAULT_STUDENTS;
 }

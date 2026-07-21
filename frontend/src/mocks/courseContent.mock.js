@@ -1,18 +1,18 @@
-// ─── MOCK: Contenido completo de un curso ─────────────────────────────────────
-// ⚠️ Formato IDÉNTICO al de la API. Al conectar el backend, este archivo se borra.
+// ─── MOCK: Complete course content ─────────────────────────────────────
+// ⚠️ Format IDENTICAL to that of the API. When connecting the backend, this file is deleted.
 //
-//   Section = { id, course_id, title, orden }
-//   Item    = { id, section_id, tipo_item: "welcome"|"content"|"review"|"quizz", ... }
-//   Content = { id, titulo, tipo: "readme"|"youtube"|"canva", datos, orden }
+//   Section = { id, course_id, title, order }
+//   Item    = { id, section_id, item_type: “welcome”|“content”|‘review’|“quizz”, ... }
+//   Content = { id, title, type: “readme”|‘youtube’|“canva”, data, order }
 
-// Secciones del curso (GET /api/courses/:id/sections)
+// Course sections (GET /api/courses/:id/sections)
 export const MOCK_SECTIONS = [
   { id: 1, course_id: 1, title: "Getting Started", orden: 1 },
   { id: 2, course_id: 1, title: "Core Concepts",   orden: 2 },
   { id: 3, course_id: 1, title: "Advanced Topics", orden: 3 },
 ];
 
-// Mensaje de bienvenida por sección (tipo_item: "welcome")
+// Welcome message by section (item_type: “welcome”)
 export const MOCK_WELCOME = {
   1: {
     message: "Hi! I'm Dr. Sarah Chen. In this section you'll gain a solid foundation in the key concepts and set yourself up for success. Watch the intro below, then move on to the content.",
@@ -28,7 +28,7 @@ export const MOCK_WELCOME = {
   },
 };
 
-// Bloques de contenido por sección (GET /api/sections/:id/contents)
+// Content blocks by section (GET /api/sections/:id/contents)
 export const MOCK_COURSE_CONTENTS = {
   1: [
     {
@@ -126,7 +126,7 @@ export const MOCK_REVIEWS = {
   },
 };
 
-// Quizz por sección (tipo_item: "quizz")
+// Quiz by section (item_type: “quizz”)
 export const MOCK_QUIZZES = {
   1: {
     points: 50,
@@ -175,7 +175,7 @@ export const MOCK_QUIZZES = {
   },
 };
 
-// Examen final del curso
+// Final Exam for the Course
 export const MOCK_FINAL = {
   points: 200,
   questions: [
@@ -194,7 +194,7 @@ export const MOCK_FINAL = {
   ],
 };
 
-// Leaderboard del curso (GET /api/courses/:id/leaderboard)
+// Course Leaderboard  (GET /api/courses/:id/leaderboard)
 export const MOCK_LEADERBOARD = [
   { id: 1, name: "Sarah Liu",    points: 2840 },
   { id: 2, name: "Jordan Kim",   points: 2150 },

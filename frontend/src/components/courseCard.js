@@ -1,8 +1,8 @@
 // ─── Course Card ──────────────────────────────────────────────────────────────
-// Tarjeta de curso reutilizable, réplica del diseño de Figma.
-// Dos variantes:
-//   - student: botón "+ Join Course" (o "Leave" si ya está inscrito)
-//   - tutor:   botones "Edit" y "Preview"
+// Reusable course card, replica of the Figma design.
+// Two variants:
+//   - student: "+Join Course" button (or "Leave" if already enrolled)
+//   - tutor:   "Edit" and "Preview" buttons
 
 import { LEVEL_COLORS } from "../constants/ui.js";
 
@@ -17,7 +17,7 @@ const icon = {
 export function courseCard(course, { role = "student", isJoined = false } = {}) {
   const levelClass = LEVEL_COLORS[course.level] || "";
 
-  // Acciones según el rol
+  // Actions based on role
   const actions = role === "tutor"
     ? `
       <div class="mt-auto grid grid-cols-2 gap-2">
@@ -40,7 +40,7 @@ export function courseCard(course, { role = "student", isJoined = false } = {}) 
         class="mt-auto w-full text-xs font-semibold py-2 rounded-lg transition-all text-white"
         style="background: var(--primary)">+ Join Course</button>`;
 
-  // Badge "Enrolled" (solo student e inscrito)
+  // Badge "Enrolled" (only for student and enrolled)
   const enrolledBadge = (role === "student" && isJoined)
     ? `<span class="absolute bottom-3 right-3 text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1"
              style="background: var(--primary)">${icon.check} Enrolled</span>`
@@ -51,7 +51,7 @@ export function courseCard(course, { role = "student", isJoined = false } = {}) 
       class="rounded-xl overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex flex-col cursor-pointer"
       style="background: var(--card); border: 1px solid var(--border)">
 
-      <!-- Portada -->
+      <!-- Cover -->
       <div class="relative overflow-hidden h-44">
         <img src="${course.image}" alt="${course.title}"
              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />

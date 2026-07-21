@@ -1,10 +1,13 @@
 // ─── Navbar ───────────────────────────────────────────────────────────────────
-// Barra de navegación superior, réplica del diseño de Figma.
-// Se adapta al rol: el student ve "Home"; el tutor ve "Home" + "Dashboard".
-// Incluye el dropdown del avatar con Profile y Sign Out.
+// Top navigation bar, replica of the Figma design.
+// Adapts to role: student sees "Home"; tutor sees "Home" + "Dashboard".
+// Includes avatar dropdown with Profile and Sign Out.
+// The microphone button opens/closes the voice assistant bar (LumiVoice).
+
 
 import { getSession, logout } from "../helpers/auth.js";
 import { navigate } from "../router/router.js";
+import { openVoiceAssistant } from "./voiceAssistantBar.js";
 
 // Íconos SVG inline (equivalentes a los de lucide del diseño)
 const icon = {
@@ -59,7 +62,7 @@ export function navbar({ active = "home" } = {}) {
           ${tabs}
         </div>
 
-        <!-- Zona derecha: campana + avatar -->
+        <!-- Zona derecha: asistente de voz + avatar -->
         <div class="flex items-center gap-2 shrink-0">
           <!-- Asistente de voz con IA -->
           <button class="js-ai-assistant relative p-2 rounded-lg transition-all cursor-pointer hover:bg-[var(--muted)]"
@@ -108,6 +111,7 @@ export function initNavbar(root = document) {
   const btn = wrap.querySelector(".js-avatar-btn");
   const menu = wrap.querySelector(".js-dropdown");
   const chevron = wrap.querySelector(".js-chevron");
+  const aiButton = root.querySelector(".js-ai-assistant");
 
   // Abrir / cerrar dropdown
   btn.addEventListener("click", (e) => {
@@ -138,6 +142,9 @@ export function initNavbar(root = document) {
   // Sign Out
   root.querySelector(".js-signout")?.addEventListener("click", () => {
     logout();
-    navigate("/login");
+    navigate("/intro");
   });
+
+  // AI Voice Assistant → abre / cierra la barra LumiVoice
+  aiButton?.addEventListener("click", openVoiceAssistant);
 }

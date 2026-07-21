@@ -1,6 +1,6 @@
-// ─── Pestaña: Quizz / Final Assessment ────────────────────────────────────────
-// Preguntas de opción múltiple con radio para marcar la respuesta correcta.
-// El mismo componente sirve para el quizz de sección y para el examen final.
+// ─── Tab: Quizz / Final Assessment ────────────────────────────────────────
+// Multiple choice questions with radio to mark the correct answer.
+// The same component works for section quizz and final exam.
 
 const icon = {
   close: `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>`,
@@ -20,7 +20,7 @@ function toggle(name, label, on) {
     </div>`;
 }
 
-// Una pregunta con sus 4 opciones
+// A question with its 4 options
 function question(q, index) {
   const options = q.options
     .map((opt, i) => {
@@ -54,7 +54,7 @@ function question(q, index) {
     </div>`;
 }
 
-// isFinal = true → textos y puntaje del examen final
+// isFinal = true → texts and grading for final exam
 export function quizzTab(quiz = {}, { isFinal = false } = {}) {
   const questions = (quiz.questions || []).map(question).join("");
 
@@ -62,8 +62,8 @@ export function quizzTab(quiz = {}, { isFinal = false } = {}) {
     <div>
       <p class="text-sm mb-4" style="color: var(--muted-foreground)">
         ${isFinal
-          ? "The final assessment is the graded end-of-course test. Add questions below."
-          : "Add multiple-choice questions. Students submit for automatic grading."}
+      ? "The final assessment is the graded end-of-course test. Add questions below."
+      : "Add multiple-choice questions. Students submit for automatic grading."}
       </p>
 
       <div class="js-questions">${questions}</div>

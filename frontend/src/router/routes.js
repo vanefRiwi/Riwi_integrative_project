@@ -1,4 +1,5 @@
-// Mapa de rutas de la SPA.
+// SPA Route Map.
+import { introView, initIntro } from "../views/intro/introView.js";
 import { loginView, initLogin } from "../views/auth/login.js";
 import { registerView, initRegister } from "../views/auth/register.js";
 import { studentHomeView, initStudentHome } from "../views/student/studentHome.js";
@@ -10,16 +11,16 @@ import { courseEditorView, initCourseEditor } from "../views/tutor/courseEditorV
 import { profileView, initProfile } from "../views/shared/profileView.js";
 
 
-// ─── Guard de /student/course ────────────────────────────────────────────────
-// La vista de curso la usan DOS roles, pero con condiciones distintas:
+// ─── Guard for /student/course ────────────────────────────────────────────────
+// The course view is used by TWO roles, but under different conditions:
 //
-//   STUDENT -> solo si está INSCRITO en el curso.
-//   TUTOR   -> solo en modo PREVIEW (?preview=1) y solo sobre SUS PROPIOS
-//              cursos (Regla 3). Sin el flag, o si el curso es de otro tutor,
-//              se le niega el acceso (403).
+//   STUDENT -> only if ENROLLED in the course.
+//   TUTOR   -> only in PREVIEW mode (?preview=1) and only for THEIR OWN
+//              courses (Rule 3). Without the flag, or if the course belongs to another tutor,
+//              access is denied (403).
 //
-// ⚠️ Esto impide que un tutor abra /student/course?id=1 a mano y se cuele
-// en la vista del estudiante de un curso ajeno.
+//  This prevents a tutor from manually opening /student/course?id=1 and gaining unauthorized access
+// to a student’s view of a course they do not teach.
 async function canAccessCourse(session) {
   const params = new URLSearchParams(location.search);
   const courseId = Number(params.get("id"));
@@ -28,16 +29,16 @@ async function canAccessCourse(session) {
   if (!courseId) return false;
 
   const course = await getCourseById(courseId);
-  if (!course) return false;              // curso inexistente -> 403
+  if (!course) return false;              // Course does not exist -> 403
 
   if (session.role === "tutor") {
-    // El tutor SOLO puede entrar en preview y SOLO a sus cursos
+    // Tutors can ONLY access the preview and ONLY their own courses
     return isPreview && course.tutor_id === session.id;
   }
 
   if (session.role === "student") {
-    // El student SOLO entra a cursos en los que está inscrito.
-    // (Y nunca en modo preview: ese modo es del tutor.)
+    // Students can ONLY access courses they are enrolled in.
+    // (And never in preview mode: that mode is for the instructor.)
     if (isPreview) return false;
     const enrolled = await getEnrolledIds();
     return enrolled.includes(courseId);
@@ -47,17 +48,18 @@ async function canAccessCourse(session) {
 }
 
 export const routes = {
+  "/intro":            { view: introView,       init: initIntro,       roles: [] },
   "/login":            { view: loginView,       init: initLogin,       roles: [] },
   "/register":         { view: registerView,    init: initRegister,    roles: [] },
 
   "/student":          { view: studentHomeView, init: initStudentHome, roles: ["student"] },
-  // La vista de curso sirve a AMBOS roles: el tutor la usa como "Preview as student"
+  // The course view serves BOTH roles: the instructor uses it as “Preview as student”
   "/student/course":   { view: courseView,      init: initCourseView,  roles: ["student", "tutor"], canAccess: canAccessCourse },
 
   "/tutor":            { view: tutorHomeView,   init: initTutorHome,   roles: ["tutor"] },
   "/tutor/dashboard":  { view: dashboardView,   init: initDashboard,   roles: ["tutor"] },
   "/tutor/editor":     { view: courseEditorView, init: initCourseEditor, roles: ["tutor"] },
 
-  // Profile es compartido por ambos roles
+  // The profile is shared by both roles
   "/profile":          { view: profileView,     init: initProfile,     roles: ["student", "tutor"] },
 };

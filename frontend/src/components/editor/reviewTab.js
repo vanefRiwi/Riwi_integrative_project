@@ -1,18 +1,18 @@
-// ─── Pestaña: Review ──────────────────────────────────────────────────────────
-// Actividad de repaso con 3 formatos: Fill in the blanks, Match pairs, Reorder steps.
+// ─── Tab: Review ───────────────────────────────────────────────────────────────
+// Review activity with 3 formats: Fill in the blanks, Match pairs, Reorder steps.
 //
-// ⚠️ Las reviews NO son evaluativas:
-//   - No cuentan para la nota final.
-//   - No otorgan puntos al leaderboard.
-//   - El estudiante puede repetirlas cuantas veces quiera.
-// Por eso aquí NO hay opciones de "counts toward grade" ni de puntos.
-// Esas opciones solo existen en Quizz y Final Assessment.
+// ⚠️ Reviews are NOT evaluative:
+//   - They don't count toward the final grade.
+//   - They don't award leaderboard points.
+//   - Students can repeat them as many times as they want.
+// That's why there are NO options for "counts toward grade" or points.
+// Those options only exist in Quizz and Final Assessment.
 
 const icon = {
   close: `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>`,
 };
 
-// Interruptor tipo switch (solo para "Instant feedback")
+// Switch-type toggle (only for "Instant feedback")
 function toggle(name, label, sub, on) {
   return `
     <div class="flex items-center justify-between py-3">
@@ -29,7 +29,7 @@ function toggle(name, label, sub, on) {
     </div>`;
 }
 
-// ── Formato 1: Fill in the blanks ──
+// ── Format 1: Fill in the blanks ──
 function fillBlanks(rev) {
   return `
     <div>
@@ -44,7 +44,7 @@ function fillBlanks(rev) {
     </div>`;
 }
 
-// ── Formato 2: Match pairs ──
+// ── Format 2: Match pairs ──
 function matchPairs(rev) {
   const rows = (rev.pairs || [])
     .map((p, i) => `
@@ -72,7 +72,7 @@ function matchPairs(rev) {
     </div>`;
 }
 
-// ── Formato 3: Reorder steps ──
+// ── Format 3: Reorder steps ──
 function reorderSteps(rev) {
   const rows = (rev.steps || [])
     .map((s, i) => `
@@ -110,8 +110,8 @@ export function reviewTab(rev = {}) {
 
   const body =
     fmt === "match-pairs" ? matchPairs(rev)
-    : fmt === "reorder-steps" ? reorderSteps(rev)
-    : fillBlanks(rev);
+      : fmt === "reorder-steps" ? reorderSteps(rev)
+        : fillBlanks(rev);
 
   return `
     <div class="space-y-5">
@@ -119,7 +119,7 @@ export function reviewTab(rev = {}) {
         Students complete this activity inside the platform and receive instant feedback.
       </p>
 
-      <!-- Aviso: las reviews son práctica, NO evaluación -->
+      <!-- Note: reviews are practice, NOT graded -->
       <div class="flex items-start gap-2.5 p-3 rounded-xl text-xs"
            style="background: var(--secondary); color: var(--primary)">
         <span class="shrink-0">&#8505;</span>
