@@ -7,8 +7,8 @@ const COURSE_COLUMNS = `
 
 export const courseRepository = {
   /**
-   * Todos los cursos + conteo real de inscritos (enrollments) + si el usuario
-   * actual está inscrito (para poder marcar "Joined" sin una query aparte).
+   * All courses + real count of enrolled students (enrollments) + if the current
+   * user is signed up (to be able to mark "Joined" without a separate query).
    */
   findAllWithStats: async (userId) => {
     const { rows } = await pool.query(

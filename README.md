@@ -50,7 +50,7 @@ npm install
 # 3. Start the backend in Watch mode (Safe Boot via Pool)
 npm run dev
 ```
-The API will run at: `http://localhost:3000`
+The API will run at: `http://localhost:3010`
 
 > 🛡️ **Fail-Fast pattern activated:** The Express server includes a safe boot validator connected by Pool. If your Docker container is down or the `.env` variables are misconfigured, the backend will stop execution immediately to prevent zombie states.
 

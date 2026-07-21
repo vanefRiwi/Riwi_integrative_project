@@ -1,7 +1,6 @@
 -- =====================================================================
 -- LUMORA - Initial schema
 -- We're adding the users table, which is required for the login.
--- Remaining tables will be added on the go along with the new modules.
 -- =====================================================================
 
 CREATE TABLE IF NOT EXISTS users (
@@ -16,8 +15,6 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- This is a test user for the login.
 -- Hash belongs to the password: "password123"
--- This is supposed to be generated with bcrypt at the backend logic.
--- This will be adding their own ones, this will be replaced when the register module gets added.
 
 INSERT INTO users (full_name, email, password_hash, role, learning_goal) VALUES
     ('Jordan Kim', 'jordan.kim@example.com', '$2b$10$a35mJA1iYdE8GaNMWduT1.Vi5B49AWrpn0cQOwx93xJh4mobvAdOa', 'student', 'Career change'),
