@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { pool } from "./postgres.db.js";
 
 /**
@@ -126,4 +127,15 @@ export const ensureSchema = async () => {
   } finally {
     client.release();
   }
+
+  const testPassword = await bcrypt.hash("password123", 10);
+
+    await client.query(
+      `INSERT INTO users (full_name, email, password_hash, role, learning_goal)
+       VALUES
+        ('Alex Rivera', 'alex.rivera@lumora.com', $1, 'tutor', 'Teaching'),
+        ('Jordan Kim', 'jordan.kim@lumora.com', $1, 'student', 'Career change')
+       ON CONFLICT (email) DO NOTHING;`,
+      [testPassword]
+    );
 };
