@@ -1,9 +1,9 @@
-# 📄 API Contract — LumORA
+# 📄 API Contract — Lumora
 
-Contrato acordado entre **frontend** y **backend**. El frontend ya está construido esperando **exactamente** estas respuestas. Si el backend respeta este contrato, la integración no requiere refactorizar ninguna vista.
+Contract agreed between **frontend** and **backend**. The frontend is already built expecting **exactly** these responses. If the backend respects this contract, the integration won't require refactoring any views.
 
-> **Formato general:** todas las respuestas son JSON. Los errores devuelven
-> `{ "ok": false, "message": "..." }` con el status HTTP correspondiente.
+> **General format:** all responses are JSON. Errors return
+> `{ "ok": false, "message": "..." }` with the corresponding HTTP status.
 
 ---
 
@@ -20,20 +20,20 @@ Contrato acordado entre **frontend** y **backend**. El frontend ya está constru
   "user": { "id": 2, "full_name": "Alex Rivera", "email": "alex@example.com", "role": "tutor", "learning_goal": "Teaching" }
 }
 ```
-**401:** credenciales inválidas.
+**401:** invalid credentials.
 
 ### `POST /api/auth/register`
 **Body:** `{ "full_name", "email", "password", "role": "student"|"tutor", "learning_goal" }`
-**201:** misma forma que login (`token` + `user`).
+**201:** same shape as login (`token` + `user`).
 
-> ⚠️ `user.id` y `user.role` son **obligatorios**: el frontend los usa para el enrutamiento por rol y para filtrar los cursos del tutor.
+> ⚠️ `user.id` and `user.role` are **required**: the frontend uses them for role-based routing and for filtering the tutor's courses.
 
 ---
 
 ## 📚 Courses
 
 ### `GET /api/courses`
-Catálogo del student. **El backend debe filtrar**: devolver solo cursos con `visibility = "open"`, más aquellos con `"code"` en los que el usuario ya esté inscrito.
+The student's catalog. **The backend must filter**: return only courses with `visibility = "open"`, plus `"code"` courses the user is already enrolled in.
 
 ```json
 [
@@ -54,17 +54,17 @@ Catálogo del student. **El backend debe filtrar**: devolver solo cursos con `vi
 ```
 
 ### `GET /api/courses/mine`
-Cursos del tutor autenticado. **El backend filtra por el `tutor_id` del token.** Nunca devolver cursos ajenos.
+Courses belonging to the authenticated tutor. **The backend filters by the token's `tutor_id`.** Never return courses that don't belong to them.
 
-### `GET /api/courses/:id` → un curso (misma forma).
+### `GET /api/courses/:id` → a single course (same shape).
 
-### `POST /api/courses` *(solo rol tutor)*
-Crea un curso. El backend asigna `tutor_id` desde el token (**no** confiar en el body).
-Si `visibility = "code"`, el backend **genera** el `course_code`.
+### `POST /api/courses` *(tutor role only)*
+Creates a course. The backend assigns `tutor_id` from the token (**do not** trust the body).
+If `visibility = "code"`, the backend **generates** the `course_code`.
 
-### `PUT /api/courses/:id` *(solo el tutor dueño)*
-**403** si `course.tutor_id !== token.user.id`.
-⚠️ **El `course_code` es inmutable**: si ya existe, no debe sobrescribirse nunca.
+### `PUT /api/courses/:id` *(only the owning tutor)*
+**403** if `course.tutor_id !== token.user.id`.
+⚠️ **`course_code` is immutable**: if it already exists, it must never be overwritten.
 
 ### `GET /api/courses/stats` *(tutor)*
 ```json
@@ -84,10 +84,10 @@ Si `visibility = "code"`, el backend **genera** el `course_code`.
 
 ---
 
-## 📦 Contents  ⭐ (el más importante)
+## 📦 Contents  ⭐ (the most important one)
 
 ### `GET /api/sections/:id/contents`
-Devuelve los contenidos **ordenados por `orden`**.
+Returns the contents **ordered by `orden`**.
 
 ```json
 [
@@ -101,17 +101,17 @@ Devuelve los contenidos **ordenados por `orden`**.
 ]
 ```
 
-**El campo `datos` cambia de significado según `tipo`:**
+**The meaning of the `datos` field changes depending on `tipo`:**
 
-| `tipo` | Contenido de `datos` |
+| `tipo` | Contents of `datos` |
 |--------|----------------------|
-| `readme` | Texto en **Markdown** |
-| `youtube` | **ID** del video (ej. `dQw4w9WgXcQ`) o URL completa |
-| `canva` | URL de **embed** (`https://www.canva.com/design/.../view?embed`) |
+| `readme` | Text in **Markdown** |
+| `youtube` | Video **ID** (e.g. `dQw4w9WgXcQ`) or full URL |
+| `canva` | **Embed** URL (`https://www.canva.com/design/.../view?embed`) |
 
-> El frontend decide automáticamente qué componente renderizar según `tipo`
-> (ver `components/contentRenderer.js`). Para agregar un tipo nuevo, solo hay
-> que registrarlo en el mapa `RENDERERS` — ninguna vista cambia.
+> The frontend automatically decides which component to render based on `tipo`
+> (see `components/contentRenderer.js`). To add a new type, you only need to
+> register it in the `RENDERERS` map — no views change.
 
 ### `POST /api/sections/:id/contents` · `PUT /api/contents/:id` · `DELETE /api/contents/:id`
 
@@ -119,37 +119,37 @@ Devuelve los contenidos **ordenados por `orden`**.
 
 ## 🎓 Enrollments
 
-### `GET /api/enrollments` → cursos del student autenticado.
+### `GET /api/enrollments` → courses of the authenticated student.
 ### `POST /api/enrollments`
 **Body:** `{ "course_id": 1, "code": "EDU-A3K9" }`
-El `code` es obligatorio **solo** si el curso es privado. **400** si el código no coincide.
-### `DELETE /api/enrollments/:courseId` → salirse del curso.
+The `code` is required **only** if the course is private. **400** if the code doesn't match.
+### `DELETE /api/enrollments/:courseId` → leave the course.
 
 ---
 
-## ✅ Reglas de negocio (deben validarse en el SERVIDOR)
+## ✅ Business rules (must be validated on the SERVER)
 
-El frontend ya las aplica, pero **eso es solo control de interfaz, no seguridad**. Cualquiera puede llamar la API directamente desde la consola.
+The frontend already enforces these, but **that's only interface control, not security.** Anyone can call the API directly from the console.
 
-1. **Un student solo ve cursos `open`** (los `code` requieren el código correcto).
-2. **Un student NO puede crear cursos**, solo unirse → `POST /api/courses` debe devolver **403** si el rol no es `tutor`.
-3. **Un tutor solo ve y edita SUS cursos** → filtrar por `tutor_id` del token; **403** al editar uno ajeno.
+1. **A student only sees `open` courses** (`code` courses require the correct code).
+2. **A student CANNOT create courses**, only join → `POST /api/courses` must return **403** if the role is not `tutor`.
+3. **A tutor only sees and edits THEIR OWN courses** → filter by the token's `tutor_id`; **403** when editing one that isn't theirs.
 
 ---
 
-## 🔑 Autenticación
+## 🔑 Authentication
 
-Todas las rutas (excepto login/register) esperan:
+All routes (except login/register) expect:
 ```
 Authorization: Bearer <token>
 ```
-El frontend ya lo envía automáticamente (`helpers/api.js`).
+The frontend already sends this automatically (`helpers/api.js`).
 
 ---
 
-## 📌 Notas para el backend dev
+## 📌 Notes for the backend dev
 
-- **Nombres de campo en español** para contenidos (`titulo`, `tipo`, `datos`, `orden`) y en inglés para el resto. Es lo acordado; el frontend ya está escrito así.
-- Devolver siempre **arrays** (no objetos con wrapper) en los `GET` de listas, o ajustar `helpers/api.js`.
-- Los `id` son numéricos.
-- Fechas en ISO 8601 si se agregan.
+- **Field names in Spanish** for contents (`titulo`, `tipo`, `datos`, `orden`) and in English for everything else. That's what was agreed; the frontend is already written that way.
+- Always return **arrays** (not wrapped objects) in list `GET` endpoints, or adjust `helpers/api.js`.
+- `id` values are numeric.
+- Dates in ISO 8601 if added.

@@ -1,25 +1,25 @@
-# 🧩 Estructura de Quizzes y Reviews — Diseño para el Backend
+# 🧩 Quiz and Review Structure — Backend Design
 
-Este documento responde a la duda técnica: **¿cómo se guardarían los quizzes y las tres actividades de review en PostgreSQL?** El frontend ya produce y consume exactamente estas estructuras, así que la integración no requerirá refactorizar la interfaz.
-
----
-
-## 🎯 El problema
-
-Un curso tiene ítems de naturaleza muy distinta:
-
-- Un **quizz** son N preguntas de opción múltiple, cada una con 4 opciones y una correcta.
-- Un **review** puede ser de **tres formatos completamente diferentes** (llenar espacios, unir pares, ordenar pasos), y cada formato necesita campos distintos.
-
-Si intentáramos modelar esto con tablas y columnas rígidas, tendríamos que crear una tabla por formato (`review_fill_blanks`, `review_match_pairs`, `review_reorder_steps`...) y hacer JOINs condicionales. Es rígido y cada formato nuevo obligaría a migrar el esquema.
+This document answers the technical question: **how would quizzes and the three review activities be stored in PostgreSQL?** The frontend already produces and consumes exactly these structures, so integration won't require refactoring the interface.
 
 ---
 
-## ✅ La solución: una tabla + JSONB
+## 🎯 The problem
 
-PostgreSQL tiene **JSONB**, que permite guardar estructuras flexibles dentro de una columna, con la ventaja de que **sí se puede consultar e indexar** (a diferencia de guardar un string JSON plano).
+A course has items of very different natures:
 
-### Tabla `items`
+- A **quiz** is N multiple-choice questions, each with 4 options and one correct answer.
+- A **review** can be in **three completely different formats** (fill in the blanks, match pairs, reorder steps), and each format needs different fields.
+
+If we tried to model this with rigid tables and columns, we'd have to create a separate table per format (`review_fill_blanks`, `review_match_pairs`, `review_reorder_steps`...) and do conditional JOINs. That's rigid, and every new format would force a schema migration.
+
+---
+
+## ✅ The solution: one table + JSONB
+
+PostgreSQL has **JSONB**, which lets you store flexible structures inside a column, with the advantage that it **can actually be queried and indexed** (unlike storing a plain JSON string).
+
+### `items` table
 
 ```sql
 CREATE TABLE items (
@@ -27,23 +27,23 @@ CREATE TABLE items (
     section_id   INTEGER NOT NULL REFERENCES sections(id) ON DELETE CASCADE,
     tipo_item    VARCHAR(15) NOT NULL
                  CHECK (tipo_item IN ('welcome', 'content', 'review', 'quizz', 'final')),
-    payload      JSONB NOT NULL DEFAULT '{}',   -- ⭐ aquí vive la estructura variable
+    payload      JSONB NOT NULL DEFAULT '{}',   -- ⭐ the variable structure lives here
     counts_grade BOOLEAN DEFAULT TRUE,
-    points       INTEGER DEFAULT 0,             -- puntos al leaderboard
+    points       INTEGER DEFAULT 0,             -- points toward the leaderboard
     orden        INTEGER NOT NULL DEFAULT 0
 );
 
--- Índice para consultar dentro del JSONB (ej. buscar reviews por formato)
+-- Index for querying inside the JSONB (e.g. searching reviews by format)
 CREATE INDEX idx_items_payload ON items USING GIN (payload);
 ```
 
-La clave: **`tipo_item` dice cómo interpretar `payload`**. Es el mismo principio que ya usamos con `tipo`/`datos` en los contenidos.
+The key idea: **`tipo_item` says how to interpret `payload`**. It's the same principle we already use with `tipo`/`datos` in contents.
 
 ---
 
-## 📝 Estructura de un QUIZZ
+## 📝 Structure of a QUIZ
 
-`tipo_item = 'quizz'` (o `'final'` para el examen final — misma estructura).
+`tipo_item = 'quizz'` (or `'final'` for the final exam — same structure).
 
 ```json
 {
@@ -69,21 +69,21 @@ La clave: **`tipo_item` dice cómo interpretar `payload`**. Es el mismo principi
 }
 ```
 
-**Notas:**
-- `correct` es el **índice** (0–3) de la opción correcta dentro de `options`.
-- Los puntos van en la columna `points` de la tabla, no en el JSON.
+**Notes:**
+- `correct` is the **index** (0–3) of the correct option within `options`.
+- Points go in the table's `points` column, not in the JSON.
 
-> ⚠️ **Seguridad:** al enviar el quizz al estudiante, el backend **debe eliminar el campo `correct`** de la respuesta. Si no, cualquiera lo ve en la pestaña Network del navegador. La corrección se hace **en el servidor**, comparando contra el `payload` original.
+> ⚠️ **Security:** when sending the quiz to the student, the backend **must strip out the `correct` field** from the response. Otherwise anyone can see it in the browser's Network tab. Grading must happen **on the server**, by comparing against the original `payload`.
 
 ---
 
-## 🎲 Estructura de los REVIEWS
+## 🎲 Structure of REVIEWS
 
-`tipo_item = 'review'`. Los tres formatos comparten el campo `format`, que indica cuál es.
+`tipo_item = 'review'`. All three formats share the `format` field, which indicates which one it is.
 
-### Formato 1 — Fill in the blanks
+### Format 1 — Fill in the blanks
 
-Los huecos se marcan con `[[dobles corchetes]]` dentro del texto.
+Blanks are marked with `[[double brackets]]` inside the text.
 
 ```json
 {
@@ -93,9 +93,9 @@ Los huecos se marcan con `[[dobles corchetes]]` dentro del texto.
 }
 ```
 
-El frontend parsea el texto, reemplaza cada `[[respuesta]]` por un input, y compara lo escrito (sin distinguir mayúsculas) contra el valor esperado.
+The frontend parses the text, replaces each `[[answer]]` with an input field, and compares what was typed (case-insensitive) against the expected value.
 
-### Formato 2 — Match pairs
+### Format 2 — Match pairs
 
 ```json
 {
@@ -109,11 +109,11 @@ El frontend parsea el texto, reemplaza cada `[[respuesta]]` por un input, y comp
 }
 ```
 
-El frontend muestra los `term` fijos y las `def` mezcladas en un select.
+The frontend shows the fixed `term` values and the shuffled `def` values in a select.
 
-### Formato 3 — Reorder steps
+### Format 3 — Reorder steps
 
-Los pasos se guardan **en el orden correcto**; el frontend los desordena al mostrarlos.
+Steps are stored **in the correct order**; the frontend shuffles them when displaying.
 
 ```json
 {
@@ -130,80 +130,80 @@ Los pasos se guardan **en el orden correcto**; el frontend los desordena al most
 
 ---
 
-## 📊 Guardar las respuestas: tabla `submissions`
+## 📊 Storing answers: `submissions` table
 
 ```sql
 CREATE TABLE submissions (
     id            SERIAL PRIMARY KEY,
     student_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     item_id       INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
-    answers       JSONB NOT NULL DEFAULT '{}',   -- lo que respondió
-    score         INTEGER,                       -- respuestas correctas
-    total         INTEGER,                       -- total de preguntas
-    points_earned INTEGER DEFAULT 0,             -- puntos al leaderboard
+    answers       JSONB NOT NULL DEFAULT '{}',   -- what they answered
+    score         INTEGER,                       -- correct answers
+    total         INTEGER,                       -- total number of questions
+    points_earned INTEGER DEFAULT 0,             -- points toward the leaderboard
     submitted_at  TIMESTAMP DEFAULT NOW(),
 
-    -- ⭐ Un intento por estudiante e ítem: los quizzes se hacen UNA sola vez
+    -- ⭐ One attempt per student and item: quizzes are taken only ONCE
     UNIQUE (student_id, item_id)
 );
 ```
 
-El `UNIQUE (student_id, item_id)` es lo que garantiza, **a nivel de base de datos**, que un quizz no se pueda repetir. Es más seguro que confiar solo en el frontend.
+The `UNIQUE (student_id, item_id)` constraint is what guarantees, **at the database level**, that a quiz can't be repeated. That's safer than relying on the frontend alone.
 
-### Ejemplo de `answers` para un quizz
+### Example `answers` for a quiz
 ```json
 { "1": 1, "2": 0, "3": 1 }
 ```
-(clave = id de la pregunta, valor = índice de la opción elegida)
+(key = question id, value = index of the chosen option)
 
 ---
 
-## 🏆 Reglas de negocio implementadas
+## 🏆 Business rules implemented
 
-**Solo los quizzes dan puntos al leaderboard.** Los reviews son actividades de práctica: dan feedback inmediato, pero **no puntúan ni cuentan para la nota**. En la tabla, un review tendría `counts_grade = false` y `points = 0`.
+**Only quizzes award leaderboard points.** Reviews are practice activities: they give instant feedback, but **don't count toward the score or the grade**. In the table, a review would have `counts_grade = false` and `points = 0`.
 
-**Los quizzes se completan una sola vez.** Garantizado por el `UNIQUE (student_id, item_id)`.
+**Quizzes are completed only once.** Guaranteed by `UNIQUE (student_id, item_id)`.
 
-**Desbloqueo progresivo.** El quizz de una sección desbloquea la siguiente; completar todos desbloquea el examen final. El backend puede validarlo comprobando que exista una `submission` para el ítem quizz de la sección anterior.
+**Progressive unlocking.** A section's quiz unlocks the next one; completing all of them unlocks the final exam. The backend can validate this by checking whether a `submission` exists for the previous section's quiz item.
 
 ---
 
-## 🧮 Cálculo de la nota final
+## 🧮 Final grade calculation
 
 ```
-nota_final = (Σ porcentaje_de_cada_quizz + porcentaje_examen_final) / (nº_secciones + 1)
+final_grade = (Σ percentage_of_each_quiz + final_exam_percentage) / (number_of_sections + 1)
 ```
 
-Se divide entre el número de secciones **+1** (por el examen final). La cantidad de quizzes varía según el curso, por eso el divisor es dinámico. Los ítems no presentados cuentan como 0.
+It's divided by the number of sections **+1** (for the final exam). The number of quizzes varies by course, which is why the divisor is dynamic. Items not submitted count as 0.
 
-En el frontend esto ya está implementado en `services/courseService.js`:
+On the frontend this is already implemented in `services/courseService.js`:
 
-- **`finalGrade(sections, progress)`** → la nota definitiva.
-- **`gradeBreakdown(sections, progress)`** → el desglose de notas individuales.
-- **`totalPoints(sections, progress)`** → puntos del leaderboard (solo quizzes).
+- **`finalGrade(sections, progress)`** → the final grade.
+- **`gradeBreakdown(sections, progress)`** → the breakdown of individual grades.
+- **`totalPoints(sections, progress)`** → leaderboard points (quizzes only).
 
-Estas **tres funciones son compartidas** por el panel *Grades* del estudiante y el *Dashboard* del tutor, así ambos ven siempre la misma cifra. Cuando exista el backend, lo ideal es que el servidor calcule la nota con la misma fórmula y la devuelva ya lista.
+These **three functions are shared** between the student's *Grades* panel and the tutor's *Dashboard*, so both always see the same figure. Once the backend exists, ideally the server should calculate the grade with the same formula and return it ready to use.
 
 ---
 
-## 🔌 Endpoints esperados
+## 🔌 Expected endpoints
 
-| Método | Ruta | Devuelve |
+| Method | Route | Returns |
 |--------|------|----------|
-| `GET` | `/api/sections/:id/items` | Los ítems de la sección (**sin el campo `correct`**) |
-| `POST` | `/api/submissions` | Corrige en el servidor y devuelve `{ score, total, points }` |
-| `GET` | `/api/courses/:id/progress` | El progreso del estudiante autenticado |
-| `GET` | `/api/courses/:id/students` | Estudiantes + notas (para el Dashboard del tutor) |
-| `GET` | `/api/courses/:id/leaderboard` | Ranking por `points_earned` (solo quizzes) |
+| `GET` | `/api/sections/:id/items` | The section's items (**without the `correct` field**) |
+| `POST` | `/api/submissions` | Grades on the server and returns `{ score, total, points }` |
+| `GET` | `/api/courses/:id/progress` | The authenticated student's progress |
+| `GET` | `/api/courses/:id/students` | Students + grades (for the tutor's Dashboard) |
+| `GET` | `/api/courses/:id/leaderboard` | Ranking by `points_earned` (quizzes only) |
 
 ---
 
-## 🔄 Qué falta para integrar
+## 🔄 What's left to integrate
 
-En `services/courseService.js`, cada función ya tiene comentado el `fetch` que la reemplaza. Al conectar el backend:
+In `services/courseService.js`, every function already has the `fetch` call that will replace it commented out. Once the backend is connected:
 
-1. Descomentar `import { api } from "../helpers/api.js"`.
-2. Reemplazar el cuerpo de cada función por su llamada real.
-3. Borrar la carpeta `mocks/`.
+1. Uncomment `import { api } from "../helpers/api.js"`.
+2. Replace the body of each function with its real API call.
+3. Delete the `mocks/` folder.
 
-**Ninguna vista cambia.**
+**No view changes.**
