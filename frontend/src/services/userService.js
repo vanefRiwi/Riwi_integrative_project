@@ -1,15 +1,15 @@
 // ─── User Service ─────────────────────────────────────────────────────────────
-// Única puerta de entrada a los datos del usuario.
+// Only gateway to user data.
 //
-// ⚠️ Ninguna vista debe tocar localStorage directamente: toda lectura/escritura
-// del perfil pasa por aquí. Así, al conectar el backend, solo cambia este archivo.
+// ⚠️ No view should touch localStorage directly: all profile read/write goes through here.
+// This way, when connecting the backend, only this file changes.
 //
-// 🔌 INTEGRACIÓN: descomenta `api` y reemplaza el cuerpo de cada función.
+// 🔌 INTEGRATION: uncomment `api` and replace the body of each function.
 
 // import { api } from "../helpers/api.js";
 import { getSession, saveSession } from "../helpers/auth.js";
 
-// Metas de aprendizaje disponibles (FUTURO: podrían venir del backend)
+// Available learning goals (FUTURE: could come from the backend)
 export const LEARNING_GOALS = [
   "Career change",
   "Skill upgrade",
@@ -18,16 +18,16 @@ export const LEARNING_GOALS = [
   "Teaching",
 ];
 
-// GET /api/users/me -> datos del usuario autenticado
+// GET /api/users/me -> authenticated user data
 export async function getProfile() {
-  // FUTURO: const { data } = await api.get("/users/me"); return data;
+  // FUTURE: const { data } = await api.get("/users/me"); return data;
   return getSession();
 }
 
-// PUT /api/users/me -> actualiza el perfil
-// Devuelve el usuario actualizado.
+// PUT /api/users/me -> updates the profile
+// Returns the updated user.
 export async function updateProfile({ full_name, email, learning_goal }) {
-  // FUTURO:
+  // FUTURE:
   //   const { user } = await api.put("/users/me", { full_name, email, learning_goal });
   //   saveSession({ token: localStorage.getItem("token"), user });
   //   return user;
@@ -45,7 +45,7 @@ export async function updateProfile({ full_name, email, learning_goal }) {
     learning_goal,
   };
 
-  // Persiste la sesión actualizada (el token no cambia)
+  // Persists the updated session (the token doesn't change)
   saveSession({ token: localStorage.getItem("token"), user: updated });
   return updated;
 }

@@ -1,16 +1,16 @@
 // ─── Login View ───────────────────────────────────────────────────────────────
-// Réplica del diseño de Figma en Vanilla JS (panel verde + formulario).
-// Es la única vista implementada por ahora.
+// Replicates the Figma design in Vanilla JS (green panel + form).
+// This is the only view implemented so far.
 
 import { api } from "../../helpers/api.js";
 import { saveSession } from "../../helpers/auth.js";
 import { navigate } from "../../router/router.js";
 
-// Estado local de la vista
+// Local view state
 let role = "student"; // "student" | "tutor"
 let showPass = false;
 
-// Íconos SVG inline (equivalentes a los de lucide usados en el diseño)
+// Inline SVG icons (equivalent to the Lucide icons used in the design)
 const icon = {
   cap: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`,
   book: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
@@ -110,11 +110,11 @@ export function loginView() {
   `;
 }
 
-// ─── Lógica / eventos de la vista ──────────────────────────────────────────────
+// ─── Logic / View Events ──────────────────────────────────────────────
 export function initLogin() {
   const root = document.getElementById("app");
 
-  // Pinta el estado visual de los tabs según el rol activo
+  // Sets the visual state of the tabs based on the active role
   const paintTabs = () => {
     root.querySelectorAll(".js-tab").forEach((btn) => {
       const active = btn.dataset.role === role;
@@ -126,7 +126,7 @@ export function initLogin() {
   };
   paintTabs();
 
-  // Cambio de rol
+  // Change rol
   root.querySelectorAll(".js-tab").forEach((btn) =>
     btn.addEventListener("click", () => {
       role = btn.dataset.role;
@@ -134,7 +134,7 @@ export function initLogin() {
     })
   );
 
-  // Mostrar / ocultar contraseña
+  // show / hide password
   const passInput = root.querySelector(".js-password");
   root.querySelector(".js-toggle-pass").addEventListener("click", (e) => {
     showPass = !showPass;
@@ -142,7 +142,7 @@ export function initLogin() {
     e.currentTarget.innerHTML = showPass ? icon.eyeOff : icon.eye;
   });
 
-  // Envío del formulario
+  // form sent
   const form = root.querySelector(".js-login-form");
   const errorEl = root.querySelector(".js-error");
 
@@ -158,7 +158,7 @@ export function initLogin() {
       const { token, user } = await api.post("/auth/login", { email, password }, { auth: false });
       saveSession({ token, user });
 
-      // Redirige según el rol devuelto por el backend
+      // Redirect based on the role returned by the backend
       navigate(user.role === "tutor" ? "/tutor" : "/student");
     } catch (err) {
       errorEl.textContent = err.message;

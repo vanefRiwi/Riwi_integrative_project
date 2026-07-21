@@ -1,6 +1,6 @@
 // ─── Student Home ─────────────────────────────────────────────────────────────
-// Banner de bienvenida + stats + catálogo de cursos con búsqueda.
-// Los datos vienen de data/courses.js (hoy mock, mañana la API real).
+// Welcome banner + stats + course catalog with search.
+// Data comes from data/courses.js (today mock, tomorrow the real API).
 
 import { navbar, initNavbar } from "../../components/navbar.js";
 import { courseCard } from "../../components/courseCard.js";
@@ -24,19 +24,19 @@ const icon = {
   bookBig: `<svg class="w-40 h-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
 };
 
-// Estado de la vista
+// View state
 let allCourses = [];
 let enrolledIds = [];
 let search = "";
 
-// Nivel de gamificación según cuántos cursos lleva
+// Gamification level based on number of courses
 function getLevel(count) {
   if (count >= 5) return "Expert";
   if (count >= 1) return "Apprentice";
   return "Rookie";
 }
 
-// Tarjeta de estadística
+// Stat card
 function statCard(iconSvg, value, label) {
   return `
     <div class="rounded-xl p-5 flex items-start gap-4" style="background: var(--card); border: 1px solid var(--border)">
@@ -49,7 +49,7 @@ function statCard(iconSvg, value, label) {
     </div>`;
 }
 
-// Grid de cursos (se re-renderiza al buscar o al inscribirse)
+// Courses grid (re-renders on search or enrollment)
 function coursesGrid() {
   const term = search.toLowerCase();
   const filtered = allCourses.filter(
@@ -80,7 +80,7 @@ export function studentHomeView() {
 
       <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
-        <!-- Banner de bienvenida -->
+        <!-- Welcome banner -->
         <div class="relative overflow-hidden rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8"
              style="background: linear-gradient(to bottom right, var(--primary), #15803d)">
           <div class="relative z-10">
@@ -97,14 +97,14 @@ export function studentHomeView() {
           <div class="absolute -right-4 -top-8 w-32 h-32 rounded-full bg-white/5"></div>
         </div>
 
-        <!-- Estadísticas -->
+        <!-- Statistics -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           ${statCard(icon.book, count, "Enrolled courses")}
           ${statCard(icon.trend, getLevel(count), "Level")}
           ${statCard(icon.searchBig, allCourses.length, "Available courses")}
         </div>
 
-        <!-- Encabezado del catálogo -->
+        <!-- Catalog header -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div>
             <h2 class="text-xl font-bold" style="font-family: var(--font-family-display)">Available Courses</h2>
@@ -122,7 +122,7 @@ export function studentHomeView() {
           </div>
         </div>
 
-        <!-- Grid de cursos -->
+        <!-- Courses grid -->
         <div class="js-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           ${coursesGrid()}
         </div>
@@ -131,7 +131,7 @@ export function studentHomeView() {
   `;
 }
 
-// Re-renderiza solo el grid y el contador (sin recargar toda la vista)
+// Re-renders only the grid and counter (without reloading the entire view)
 function refreshGrid(root) {
   root.querySelector(".js-grid").innerHTML = coursesGrid();
   const term = search.toLowerCase();
@@ -142,9 +142,9 @@ function refreshGrid(root) {
   bindCardActions(root);
 }
 
-// Engancha los botones Join / Leave de cada tarjeta
+// Hooks the Join / Leave buttons for each card
 function bindCardActions(root) {
-  // Clic en la tarjeta -> abrir el curso (solo si ya está inscrito)
+  // Click on card -> open course (only if already enrolled)
   root.querySelectorAll("[data-course]").forEach((card) =>
     card.addEventListener("click", () => {
       const id = Number(card.dataset.course);
@@ -165,7 +165,7 @@ function bindCardActions(root) {
       const id = Number(btn.dataset.leave);
       const course = allCourses.find((c) => c.id === id);
 
-      // Confirmación antes de abandonar el curso
+      // Confirmation before leaving course
       const ok = await confirmModal({
         title: "Leave this course?",
         message: `You'll be unenrolled from "${course?.title || "this course"}". Your progress will be lost and you'll need to join again to continue.`,
@@ -176,10 +176,10 @@ function bindCardActions(root) {
 
       enrolledIds = await leaveCourse(id);
 
-      // ⚠️ Hay que RECARGAR el catálogo, no solo repintar:
-      // si el curso era PRIVADO, al salirse deja de ser visible y debe
-      // desaparecer del home (getCourses solo devuelve los "open" + los
-      // privados en los que sigues inscrito).
+      // ⚠️ Must RELOAD the catalog, not just repaint:
+      // if the course was PRIVATE, leaving makes it invisible and should
+      // disappear from home (getCourses only returns "open" + private ones
+      // you're still enrolled in).
       allCourses = await getCourses();
 
       rerender();
@@ -187,28 +187,28 @@ function bindCardActions(root) {
   );
 }
 
-// Vuelve a pintar toda la vista (para actualizar banner y stats también)
+// Re-renders entire view (to update banner and stats too)
 function rerender() {
   const app = document.getElementById("app");
   app.innerHTML = studentHomeView();
   attachEvents(app);
 }
 
-// Eventos de la vista (sin volver a cargar los datos)
+// View events (without reloading data)
 function attachEvents(root) {
   initNavbar(root);
 
-  // Búsqueda en vivo
+  // Live search
   const input = root.querySelector(".js-search");
   input.addEventListener("input", (e) => {
     search = e.target.value;
     refreshGrid(root);
   });
 
-  // Modal "Join a course": por código (privados) o explorando los abiertos
+  // Modal "Join a course": by code (private) or exploring open ones
   root.querySelector(".js-join-modal").addEventListener("click", () => {
     openJoinCourseModal(async () => {
-      // Al inscribirse, recargamos los datos y repintamos el home
+      // When enrolling, reload data and re-render home
       allCourses = await getCourses();
       enrolledIds = await getEnrolledIds();
       rerender();
@@ -221,7 +221,7 @@ function attachEvents(root) {
 export async function initStudentHome() {
   const root = document.getElementById("app");
 
-  // Carga los datos (hoy mock, mañana la API real) y re-renderiza
+  // Loads data (today mock, tomorrow the real API) and re-renders
   allCourses = await getCourses();
   enrolledIds = await getEnrolledIds();
   search = "";

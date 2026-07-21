@@ -5,13 +5,13 @@ import { notAuthorizedView, initNotAuthorized } from "../views/shared/notAuthori
 
 const app = () => document.getElementById("app");
 
-// Navega sin recargar (History API)
+// Browse without reloading (History API)
 export function navigate(path) {
   history.pushState({}, "", path);
   renderRoute();
 }
 
-// Intercepta clicks en <a data-link> para navegar sin recargar
+// Intercepts clicks on <a data-link> to navigate without reloading
 function handleLinks() {
   document.body.addEventListener("click", (e) => {
     const link = e.target.closest("[data-link]");
@@ -21,33 +21,34 @@ function handleLinks() {
   });
 }
 
-// Pinta una vista de error SIN cambiar la URL.
-// Así el usuario ve la ruta que intentó abrir (útil y honesto),
-// y puede corregirla o volver atrás.
+// Displays an error message WITHOUT changing the URL.
+// This way, the user sees the URL they tried to open (which is helpful and transparent),
+// and can correct it or go back.
 async function renderError(view, init) {
   app().innerHTML = view();
   if (init) await init();
 }
 
-// Renderiza la vista de la URL actual
+// Renders the view for the current URL
 export async function renderRoute() {
   const path = location.pathname;
   const session = getSession();
 
-  // ── Raíz "/": redirige al home que corresponda (no es un 404) ──
+  // ── Root “/”: redirects to the appropriate home page (not a 404) ──
+  // Logged-out visitors see the animated intro first, which then leads to /login.
   if (path === "/" || path === "") {
-    return navigate(!session ? "/login" : session.role === "tutor" ? "/tutor" : "/student");
+    return navigate(!session ? "/intro" : session.role === "tutor" ? "/tutor" : "/student");
   }
 
   const route = routes[path];
 
-  // ── 404: la ruta no existe ──
+  // ── 404: The path does not exist ──
   if (!route) {
     return renderError(notFoundView, initNotFound);
   }
 
-  // ── 403: la ruta existe, pero el rol no tiene acceso ──
-  // (o no hay sesión, y la ruta es protegida)
+  // ── 403: The path exists, but the role does not have access ──
+  // (or there is no session, and the path is protected)
   const isProtected = route.roles.length > 0;
   const hasRole = session && route.roles.includes(session.role);
 
@@ -55,9 +56,9 @@ export async function renderRoute() {
     return renderError(notAuthorizedView, initNotAuthorized);
   }
 
-  // ── Guard extra: algunas rutas necesitan más que el rol ──
-  // Ej: /student/course permite al TUTOR, pero SOLO en modo preview
-  // y SOLO sobre sus propios cursos. `canAccess` devuelve true/false.
+  // ── Extra note: Some routes require more than just a role ──
+  // Example: /student/course allows the TUTOR, but ONLY in preview mode
+  // and ONLY for their own courses. `canAccess` returns true/false.
   if (route.canAccess) {
     const allowed = await route.canAccess(session);
     if (!allowed) {
@@ -65,15 +66,15 @@ export async function renderRoute() {
     }
   }
 
-  // ── Si YA tiene sesión y va a login/register, lo mandamos a su home ──
-  // (evita que un usuario logueado vea el formulario de login)
-  if (session && (path === "/login" || path === "/register")) {
+  // ── If the user is ALREADY logged in and goes to intro/login/register, we redirect them to their home page ──
+  // (prevents a logged-in user from seeing the intro or login form)
+  if (session && (path === "/intro" || path === "/login" || path === "/register")) {
     return navigate(session.role === "tutor" ? "/tutor" : "/student");
   }
 
-  // ── Ruta válida ──
-  // Pinta la vista inicial y luego ejecuta su init
-  // (las vistas que cargan datos vuelven a renderizarse dentro de su init)
+  // ── Valid Route ──
+  // Renders the initial view and then executes its init
+  // (views that load data are re-rendered within their init)
   app().innerHTML = route.view();
   if (route.init) await route.init();
 }

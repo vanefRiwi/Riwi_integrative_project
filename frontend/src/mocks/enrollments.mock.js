@@ -1,11 +1,11 @@
-// ─── MOCK: Estudiantes inscritos y sus notas ──────────────────────────────────
-// Alimenta el Dashboard del tutor.
+// ─── MOCK: Enrolled Students and Their Grades ──────────────────────────────────
+// Feeds the tutor's dashboard.
 //
-// ⚠️ Formato pensado para la API:
+// ⚠️ Format designed for the API:
 //   GET /api/courses/:id/students
 //   -> [{ id, full_name, email, grades: { quizzes: {sectionId: {...}}, final: {...} } }]
 //
-// El backend calculará esto con un JOIN entre users, enrollments y submissions.
+// The backend will calculate this using a JOIN between the `users`, `enrollments`, and `submissions` tables.
 
 export const MOCK_ENROLLED_STUDENTS = {
   // key = course_id
@@ -27,7 +27,7 @@ export const MOCK_ENROLLED_STUDENTS = {
     {
       id: 12, full_name: "Michael Torres", email: "michael.torres@example.com",
       grades: {
-        // Solo hizo el primer quizz -> aún sin nota final
+        // Only took the first quiz -> still no final grade
         quizzes: { 1: { score: 7, total: 10, points: 35 } },
         final: null,
       },
@@ -49,7 +49,7 @@ export const MOCK_ENROLLED_STUDENTS = {
     {
       id: 15, full_name: "Emma Walsh", email: "emma.walsh@example.com",
       grades: {
-        quizzes: {},          // no ha empezado
+        quizzes: {},         // It hasn't started yet
         final: null,
       },
     },
@@ -70,7 +70,7 @@ export const MOCK_ENROLLED_STUDENTS = {
   ],
 };
 
-// Para cursos sin datos, se genera una lista vacía
+// For courses with no data, an empty list is generated
 export function studentsForCourse(courseId) {
   return MOCK_ENROLLED_STUDENTS[courseId] || [];
 }
