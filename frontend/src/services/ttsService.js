@@ -29,6 +29,36 @@ let currentCharIndex = 0;
 // having to poll the state.
 let onStateChange = null;
 
+// Cached English voice. The browser loads voices asynchronously, so we pick
+// one lazily and remember it. Without this, speechSynthesis uses the system
+// default voice (which on a Spanish-configured Mac is a Spanish voice trying
+// to pronounce English words, hence the odd accent).
+let englishVoice = null;
+
+function pickEnglishVoice() {
+  const voices = speechSynthesis.getVoices();
+  if (!voices || !voices.length) return null;
+
+  // Prefer a natural US English voice, then any en-US, then any English.
+  return (
+    voices.find((v) => /en[-_]US/i.test(v.lang) && /google|samantha|natural/i.test(v.name)) ||
+    voices.find((v) => /en[-_]US/i.test(v.lang)) ||
+    voices.find((v) => /^en\b|en[-_]/i.test(v.lang)) ||
+    null
+  );
+}
+
+function getEnglishVoice() {
+  if (englishVoice) return englishVoice;
+  englishVoice = pickEnglishVoice();
+  return englishVoice;
+}
+
+// Voices may not be ready at load time; refresh the cache when they arrive.
+if (typeof speechSynthesis !== "undefined") {
+  speechSynthesis.onvoiceschanged = () => { englishVoice = pickEnglishVoice(); };
+}
+
 function emitState(state) {
   // state: "playing" | "paused" | "stopped"
   if (typeof onStateChange === "function") onStateChange(state);
@@ -65,6 +95,12 @@ export function speakText(text = "", startChar = 0) {
   utterance = new SpeechSynthesisUtterance(toSpeak);
   utterance.rate = currentRate;
   utterance.lang = "en-US";
+
+  // Force an actual English voice. Setting lang alone is not enough: the
+  // browser still uses the system default voice unless we assign one, which
+  // is why a Spanish system voice was reading the English text.
+  const voice = getEnglishVoice();
+  if (voice) utterance.voice = voice;
 
   // Track progress: onboundary fires as the voice crosses words/sentences.
   // We store the absolute char index (offset + event index) so we always

@@ -179,10 +179,6 @@ function template() {
         </button>
 
         <div class="flex-1 min-w-0">
-             <p class="text-sm font-bold leading-tigh text-center"
-              style="color: var(--primary); font-family: var(--font-family-display)">
-              LumiVoice
-             </p>
           <p class="text-sm font-bold leading-tight" style="color: var(--primary); font-family: var(--font-family-display)">
             Listen to this section
           </p>

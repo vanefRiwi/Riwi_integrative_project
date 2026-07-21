@@ -48,14 +48,14 @@ export function introView() {
           </div>
         </div>
 
-        <!-- Brand name (Lumora, only the L is uppercase) -->
+        <!-- Brand name (Lumora) -->
         <h1 class="js-intro-item text-6xl sm:text-7xl font-bold text-white mb-4 tracking-tight"
             style="font-family: var(--font-family-display)">Lumora</h1>
 
         <!-- Tagline -->
         <p class="js-intro-item text-xl sm:text-2xl text-green-50 mb-3 font-medium"
            style="font-family: var(--font-family-display)">
-          An e-learning app for everyone.
+          An e-learning website for everyone.
         </p>
         <!-- lumiVoice "lesson board": styled like an actual whiteboard pinned
              to the wall (frame, grid lines, pins), with the text typed out
@@ -327,8 +327,19 @@ function startParticles(canvas) {
   const PUSH_STRENGTH = 0.6;  // how hard particles get pushed away
 
   function resize() {
-    width = canvas.width = canvas.offsetWidth;
-    height = canvas.height = canvas.offsetHeight;
+    // Safari sometimes reports offsetWidth/Height as 0 right after mount and
+    // ignores devicePixelRatio, which makes the canvas look blurry or empty.
+    // Use the bounding rect (with a window fallback) and scale by DPR.
+    const rect = canvas.getBoundingClientRect();
+    width = Math.round(rect.width) || window.innerWidth;
+    height = Math.round(rect.height) || window.innerHeight;
+
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    // Draw in CSS pixels; the backing store is scaled up for retina sharpness.
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
     const count = Math.min(90, Math.floor((width * height) / COUNT_DIVISOR));
     particles = Array.from({ length: count }, () => ({
       x: Math.random() * width,
@@ -417,6 +428,12 @@ function startParticles(canvas) {
   resize();
   onResize = resize;
   window.addEventListener("resize", onResize);
+
+  // Safari can report a 0-size canvas on the first mount. If that happened,
+  // re-measure once the layout has settled so particles fill the screen.
+  if (!width || !height || !particles.length) {
+    requestAnimationFrame(resize);
+  }
 
   // ── Track the mouse position relative to the canvas ──
   onMouseMove = (e) => {
