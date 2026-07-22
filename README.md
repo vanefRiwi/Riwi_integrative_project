@@ -80,7 +80,6 @@ Install all dependencies:
 npm install
 ```
 
----
 
 #### Environment Setup
 
@@ -93,7 +92,6 @@ GEMINI_API_KEY=<YOUR_GEMINI_API_KEY>
 PORT=3001
 ```
 
----
 
 #### Run the Agent
 
