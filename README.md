@@ -65,7 +65,7 @@ The web interface will be available at: `http://localhost:5173`
 
 ### 4. Agent Layer (Gemini AI)
 
-# Installation
+#### Installation
 
 
 Navigate to the Agent folder:
@@ -82,7 +82,7 @@ npm install
 
 ---
 
-# Environment Setup
+#### Environment Setup
 
 Create a file named **.env** inside the **agent** folder.
 
@@ -95,7 +95,7 @@ PORT=3001
 
 ---
 
-# Run the Agent
+#### Run the Agent
 
 Start the development server:
 
