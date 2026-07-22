@@ -63,6 +63,52 @@ npm run dev
 ```
 The web interface will be available at: `http://localhost:5173`
 
+### 4. Agent Layer (Gemini AI)
+
+# Installation
+
+
+Navigate to the Agent folder:
+
+```bash
+cd agent
+```
+
+Install all dependencies:
+
+```bash
+npm install
+```
+
+---
+
+# Environment Setup
+
+Create a file named **.env** inside the **agent** folder.
+
+Add the following variables:
+
+```env
+GEMINI_API_KEY=<YOUR_GEMINI_API_KEY>
+PORT=3001
+```
+
+---
+
+# Run the Agent
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The Agent will be running at:
+
+```text
+http://localhost:3001
+```
+
 ---
 
 ## 🔑 Test credentials for access control (Login)
