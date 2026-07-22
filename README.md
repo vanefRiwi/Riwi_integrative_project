@@ -73,3 +73,5 @@ To test the end-to-end (E2E) authentication flow with the physical database, use
 * **Tutor Role 👨‍🏫:** `alex.rivera@example.com` | Goal: *Teaching*
 
 Upon successful login, the backend will validate the credentials against PostgreSQL, sign a secure **JWT** token, and return it to the frontend. The SPA will save the session state and dynamically redirect to `/student` or `/tutor` based on the verified role.
+
+> This version has been fully tested
