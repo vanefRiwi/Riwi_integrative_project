@@ -24,7 +24,7 @@ Follow this strict sequence of steps to spin up the entire Lumora architecture o
 ### 1. Database (Docker)
 From the project root, run the following command to download the lightweight image and initialize the container in the background:
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 #### 🔌 Connection parameters in DBeaver:
@@ -50,7 +50,7 @@ npm install
 # 3. Start the backend in Watch mode (Safe Boot via Pool)
 npm run dev
 ```
-The API will run at: `http://localhost:3010`
+The API will run at: `http://localhost:3000`
 
 > 🛡️ **Fail-Fast pattern activated:** The Express server includes a safe boot validator connected by Pool. If your Docker container is down or the `.env` variables are misconfigured, the backend will stop execution immediately to prevent zombie states.
 
