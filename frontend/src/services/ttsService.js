@@ -1,7 +1,7 @@
 import { marked } from "marked";
 
 // ─────────────────────────────────────────────────────────────
-// LumiVoice · Text-To-Speech Service
+// LumiVoice · Text-To-Speech Service (Cross-Browser Fix)
 //
 // All voice logic lives here. The UI (voiceAssistantBar.js) ONLY calls
 // these exported functions: it never touches speechSynthesis directly.
@@ -9,7 +9,7 @@ import { marked } from "marked";
 // (courseService.js, contentService.js).
 //
 //   Frontend (voiceAssistantBar) → ttsService → SpeechSynthesis (browser)
-//                                            └→ agent/ (summarize only)
+//                                           └→ agent/ (summarize only)
 //
 // TTS runs 100% in the browser with the native SpeechSynthesis API:
 // no backend, no API key, no cost. Only `summarizeText` calls the agent.
@@ -18,10 +18,11 @@ import { marked } from "marked";
 let utterance = null;
 let currentRate = 1;
 let isSpeaking = false;
+let isPausedState = false; // Manual state flag to handle Edge/Chrome pause workaround reliably
 
 // Text currently being read, and how far we have progressed (char index).
-// We track the boundary so a speed change can resume from roughly where the
-// voice was, instead of restarting the whole passage from the beginning.
+// We track the boundary so a pause/resume or speed change can continue from roughly
+// where the voice was, instead of restarting the whole passage from the beginning.
 let currentText = "";
 let currentCharIndex = 0;
 
@@ -36,6 +37,7 @@ let onStateChange = null;
 let englishVoice = null;
 
 function pickEnglishVoice() {
+  if (typeof speechSynthesis === "undefined") return null;
   const voices = speechSynthesis.getVoices();
   if (!voices || !voices.length) return null;
 
@@ -78,16 +80,20 @@ export function setOnStateChange(cb) {
  * Reads plain text aloud. Cancels any previous reading.
  * @param {string} text
  * @param {number} [startChar=0]  char offset to start from (used to resume
- *                                after a speed change without restarting)
+ *                                after pause or speed change without restarting)
  */
 export function speakText(text = "", startChar = 0) {
   if (!text.trim()) return;
 
-  stopSpeech();
+  // Cancel any existing utterance directly
+  if (typeof speechSynthesis !== "undefined") {
+    speechSynthesis.cancel();
+  }
 
   // Remember the full text so we can resume from an offset later.
   currentText = text;
   currentCharIndex = startChar > 0 ? startChar : 0;
+  isPausedState = false;
 
   // If we are resuming from an offset, only speak the remaining slice.
   const toSpeak = startChar > 0 ? text.slice(startChar) : text;
@@ -111,37 +117,68 @@ export function speakText(text = "", startChar = 0) {
     }
   };
 
-  utterance.onstart = () => { isSpeaking = true; emitState("playing"); };
-  utterance.onend   = () => {
+  utterance.onstart = () => {
+    isSpeaking = true;
+    isPausedState = false;
+    emitState("playing");
+  };
+
+  utterance.onend = () => {
+    // Ignore the end event if playback was interrupted specifically for a manual pause
+    if (isPausedState) return;
+
     isSpeaking = false;
     currentCharIndex = 0;   // finished: reset progress
     emitState("stopped");
   };
-  utterance.onerror = () => { isSpeaking = false; emitState("stopped"); };
+
+  utterance.onerror = (e) => {
+    // Edge/Chrome throw 'interrupted' or 'canceled' when manually stopping speech via cancel()
+    if (e.error === "interrupted" || e.error === "canceled") return;
+
+    isSpeaking = false;
+    isPausedState = false;
+    emitState("stopped");
+  };
 
   speechSynthesis.speak(utterance);
 }
 
-/** Pauses the current reading. */
+/** 
+ * Pauses the current reading reliably across all browsers.
+ * Avoids native `speechSynthesis.pause()` bugs in Chromium/Edge by canceling 
+ * the utterance while retaining the current character progress index.
+ */
 export function pauseSpeech() {
-  if (speechSynthesis.speaking && !speechSynthesis.paused) {
-    speechSynthesis.pause();
-    emitState("paused");
-  }
-}
+  if (!isSpeaking || isPausedState) return;
 
-/** Resumes a paused reading. */
-export function resumeSpeech() {
-  if (speechSynthesis.paused) {
-    speechSynthesis.resume();
-    emitState("playing");
-  }
-}
-
-/** Fully stops any reading. */
-export function stopSpeech() {
-  speechSynthesis.cancel();
+  isPausedState = true;
   isSpeaking = false;
+
+  // Instead of speechSynthesis.pause() which hangs in Edge/Chrome,
+  // we cancel playback but retain `currentCharIndex`.
+  speechSynthesis.cancel();
+  emitState("paused");
+}
+
+/** Resumes a paused reading from the last recorded position. */
+export function resumeSpeech() {
+  if (!isPausedState || !currentText) return;
+
+  // Resume reading from the exact offset where it stopped
+  speakText(currentText, currentCharIndex);
+}
+
+/** Fully stops any reading and resets state. */
+export function stopSpeech() {
+  isSpeaking = false;
+  isPausedState = false;
+  currentCharIndex = 0;
+  currentText = "";
+
+  if (typeof speechSynthesis !== "undefined") {
+    speechSynthesis.cancel();
+  }
   emitState("stopped");
 }
 
@@ -152,7 +189,7 @@ export function restartSpeech() {
 }
 
 /**
- * Changes the reading speed. Supported: 0.75, 1, 1.5.
+ * Changes the reading speed.
  *
  * IMPORTANT: the Web Speech API cannot change the rate of an utterance that
  * is already playing. To apply the new speed WITHOUT restarting from the
@@ -164,24 +201,21 @@ export function restartSpeech() {
 export function setSpeechRate(rate = 1) {
   currentRate = rate;
 
-  // If something is playing (or paused), re-speak from where we are so the
-  // new rate takes effect from the current position, not from the start.
-  const wasPlaying = speechSynthesis.speaking || speechSynthesis.paused;
-  if (wasPlaying && currentText) {
-    // Back up a couple of chars so we do not clip mid-word.
+  // If something is playing or paused, re-speak from current position with the new rate.
+  if ((isSpeaking || isPausedState) && currentText) {
     const resumeAt = Math.max(0, currentCharIndex);
     speakText(currentText, resumeAt);
   }
 }
 
-/** true if a reading is in progress (even if paused). */
+/** true if a reading is currently playing. */
 export function isSpeechPlaying() {
-  return speechSynthesis.speaking;
+  return isSpeaking;
 }
 
 /** true if the reading is paused. */
 export function isSpeechPaused() {
-  return speechSynthesis.paused;
+  return isPausedState;
 }
 
 // ─── Markdown → readable text ────────────────────────────────
